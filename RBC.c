@@ -12,7 +12,6 @@
 
 Trains *trains;
 
-
 bool add_to_rbc(Train *t)
 {
     if ((trains -> nb_trains) < 100){
@@ -28,9 +27,12 @@ bool add_to_rbc(Train *t)
 bool remove_to_rbc(Train *t)
 {
     bool removable = false;
-    for(int i = 0; i<(trains -> trains)[trains -> nb_trains]; i++){
-        if(*t.id == (trains -> trains).id){
+    int i;
+    for (i = 0; i < (trains -> trains)[trains -> nb_trains]; i++){
+        if (strcmp(t -> id, ((trains -> trains)[i]) -> id))
+        {
             removable = true;
+            break;
         }
     }
     if(removable){
@@ -43,6 +45,11 @@ bool remove_to_rbc(Train *t)
 
 int main()
 {
+    trains -> nb_trains = 0;
+    for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
+        (trains -> trains)[i] = NULL;
+    }
+
     int sock, length;
     struct sockaddr_in server;
     int msgsock;
