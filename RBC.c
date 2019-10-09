@@ -10,6 +10,26 @@
 
 #define TRUE 1
 
+Trains *trains;
+
+
+bool add_to_rbc(Train *t)
+{
+    if ((trains -> nb_trains) < 100){
+        (trains -> trains)[trains -> nb_trains] = t;
+        (trains -> nb_trains) ++;
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool remove_to_rbc(Train *t)
+{
+    int i = 0;
+}
+
 int main()
 {
     int sock, length;

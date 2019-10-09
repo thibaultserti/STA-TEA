@@ -20,11 +20,12 @@ Train;
 typedef struct trains
 {
     Train* trains[MAX_NB_TRAINS];
+    int nb_trains;
 }
 Trains;
 
 //bool init_connection();
-bool add_from_rbc(Train *t);
+bool add_to_rbc(Train *t);
 bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
 bool check_eoa(void); /* send SIG_STOP if the train 2 is right behind the train 1; send SIG_CONTINUE otherwise */
