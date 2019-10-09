@@ -27,7 +27,18 @@ bool add_to_rbc(Train *t)
 
 bool remove_to_rbc(Train *t)
 {
-    int i = 0;
+    bool removable = false;
+    for(int i = 0; i<(trains -> trains)[trains -> nb_trains]; i++){
+        if(*t.id == (trains -> trains).id){
+            removable = true;
+        }
+    }
+    if(removable){
+        (trains -> trains)[i] = 0;
+    }
+    else{
+        return false;
+    }
 }
 
 int main()
