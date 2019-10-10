@@ -13,12 +13,12 @@ Trains *trains;
 bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
-    for (int i = 0; i < (trains -> trains)[trains -> nb_trains]; i++){
+    for (int i = 0; i < (trains -> nb_trains); i++){
         if (strcmp(t -> id, ((trains -> trains)[i]) -> id)){
             return false;
         }
     }
-    // THen if the numebr of trains is less than 100, we add the new train to the structure
+    // Then if the numebr of trains is less than 100, we add the new train to the structure
     if ((trains -> nb_trains) < 100){
         (trains -> trains)[trains -> nb_trains] = t;
         (trains -> nb_trains) ++;
@@ -52,7 +52,7 @@ bool remove_to_rbc(Train t)
 
 bool update_local_rbc(char* id, short local)
 {
-    for (int i=0; i < (trains -> trains)[trains -> nb_trains]; i++){
+    for (int i=0; i < (trains -> nb_trains); i++){
         if (strcmp(id, ((trains -> trains)[i]) -> id)){
             (trains -> trains)[i] -> local = local;
             return true;
@@ -63,7 +63,7 @@ bool update_local_rbc(char* id, short local)
 
 bool update_eoa_rbc(void){
     // The structure trains.trains must be sorted by growing local
-    for (int i=0; i < ((trains -> trains)[trains -> nb_trains]) - 1; i++){
+    for (int i=0; i < (trains -> nb_trains) - 1; i++){
         (trains -> trains)[i] -> eoa = ((trains -> trains)[i+1] -> local) - 1;
     }
     return true;
@@ -73,10 +73,10 @@ bool update_eoa_rbc(void){
 int main()
 {
     // Initialization of the structure trains
-    /*trains -> nb_trains = 0;
+    trains -> nb_trains = 0;
     for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
         (trains -> trains)[i] = NULL;
-    }*/
+    }
 
     int sock, length;
     struct sockaddr_in server;
