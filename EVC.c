@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include<sys/socket.h>
-#include<arpa/inet.h>	//inet_addr
+#include<arpa/inet.h>
+#include<string.h>
 #include "EVC.h"
 
 int main(int argc , char *argv[])
@@ -28,6 +29,13 @@ int main(int argc , char *argv[])
 	}
 	
 	puts("Connected");
-    while (1);
+	puts("Sending data…");
+	char* data = argv[2];
+	if( send(socket_desc, data, strlen(data), 0)<0)
+	{
+		puts("Failed to send data");
+		return 1;
+	}
+	puts("Data sent");
 	return 0;
 }
