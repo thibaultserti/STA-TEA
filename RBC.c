@@ -14,6 +14,13 @@ Trains *trains;
 
 bool add_to_rbc(Train *t)
 {
+    // We first check if the train is not already in our structure
+    for (int i = 0; i < (trains -> trains)[trains -> nb_trains]; i++){
+        if (strcmp(t -> id, ((trains -> trains)[i]) -> id)){
+            return false;
+        }
+    }
+    // THen if the numebr of trains is less than 100, we add the new train to the structure
     if ((trains -> nb_trains) < 100){
         (trains -> trains)[trains -> nb_trains] = t;
         (trains -> nb_trains) ++;
