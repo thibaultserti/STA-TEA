@@ -14,7 +14,7 @@ bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains -> nb_trains); i++){
-        if (strcmp(t -> id, ((trains -> trains)[i]) -> id)){
+        if (strcmp(*(t -> id), *((trains -> trains)[i]) -> id)){
             return false;
         }
     }
