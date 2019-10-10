@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include "RBC.h"
 
-#define TRUE 1
-
 Trains *trains;
 
 bool add_to_rbc(Train *t)
@@ -24,12 +22,13 @@ bool add_to_rbc(Train *t)
     }
 }
 
-bool remove_to_rbc(Train *t)
+bool remove_to_rbc(Train t)
 {
     bool removable = false;
     int i;
-    for (i = 0; i < (trains -> trains)[trains -> nb_trains]; i++){
-        if (strcmp(t -> id, ((trains -> trains)[i]) -> id))
+    char *train_id = *t.id;
+    for (i = 0; i < (trains -> nb_trains); i++){
+        if (strcmp(train_id, *((trains -> trains)[i])->id))
         {
             removable = true;
             break;
@@ -37,6 +36,7 @@ bool remove_to_rbc(Train *t)
     }
     if(removable){
         (trains -> trains)[i] = 0;
+        return true;
     }
     else{
         return false;
@@ -45,10 +45,10 @@ bool remove_to_rbc(Train *t)
 
 int main()
 {
-    trains -> nb_trains = 0;
+    /*trains -> nb_trains = 0;
     for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
         (trains -> trains)[i] = NULL;
-    }
+    }*/
 
     int sock, length;
     struct sockaddr_in server;
@@ -76,6 +76,7 @@ int main()
 
     /* Find out assigned port number and print it out */
     length = sizeof(server);
+    printf("getsockname");
     if (getsockname(sock, (struct sockaddr *)&server, &length)) {
         perror("Getting socket name");
         exit(1);
@@ -92,12 +93,14 @@ int main()
         } else do {
             memset(buf, 0, sizeof(buf));
             if ((rval  = read(datasock, buf,  1024)) < 0)
+            {
                 perror("Reading stream message");
+            }
             else if (rval == 0)
                 printf("Ending connection\n");
             else
                 printf("-->%s\n", buf);
         } while (rval > 0);
         close(datasock);
-    } while (TRUE);
+    } while (true);
 }
