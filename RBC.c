@@ -71,7 +71,7 @@ int main()
 
     int sock, length;
     struct sockaddr_in server;
-    int msgsock;
+    int datasock;
     char buf[1024];
     int rval;
 
@@ -81,14 +81,18 @@ int main()
         perror("Opening stream socket");
         exit(1);
     }
-    /* Name socket using wildcards */
+
+    /* Name socket */
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(4242);
+
+    /* Bind socket */
     if (bind(sock, (struct sockaddr *)&server, sizeof(server))) {
         perror("Binding stream socket");
         exit(1);
     }
+
     /* Find out assigned port number and print it out */
     length = sizeof(server);
     if (getsockname(sock, (struct sockaddr *)&server, &length)) {
@@ -97,22 +101,22 @@ int main()
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
 
-    /* Start accepting connections */
+    /* Accepting incoming connections */
     listen(sock, 5);
     do {
-        msgsock = accept(sock, 0, 0);
-        if (msgsock == -1) {
+        datasock = accept(sock, 0, 0);
+        if (datasock == -1) {
             perror("Accept");
             return EXIT_FAILURE;
         } else do {
             memset(buf, 0, sizeof(buf));
-            if ((rval  = read(msgsock, buf,  1024)) < 0)
+            if ((rval  = read(datasock, buf,  1024)) < 0)
                 perror("Reading stream message");
             else if (rval == 0)
                 printf("Ending connection\n");
             else
                 printf("-->%s\n", buf);
         } while (rval > 0);
-        close(msgsock);
+        close(datasock);
     } while (TRUE);
 }
