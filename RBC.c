@@ -29,8 +29,7 @@ bool remove_to_rbc(Train *t)
     bool removable = false;
     int i;
     for (i = 0; i < (trains -> trains)[trains -> nb_trains]; i++){
-        if (strcmp(t -> id, ((trains -> trains)[i]) -> id))
-        {
+        if (strcmp(t -> id, ((trains -> trains)[i]) -> id)){
             removable = true;
             break;
         }
@@ -43,8 +42,21 @@ bool remove_to_rbc(Train *t)
     }
 }
 
+bool update_local_rbc(char* id, short local)
+{
+    for (int i=0; i < (trains -> trains)[trains -> nb_trains]; i++){
+        if (strcmp(id, ((trains -> trains)[i]) -> id)){
+            ((trains -> trains)[i] -> local) = local;
+            return true;
+        }
+    }
+    return false;
+}
+
+
 int main()
 {
+    // Initialization of the structure trains
     trains -> nb_trains = 0;
     for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
         (trains -> trains)[i] = NULL;
