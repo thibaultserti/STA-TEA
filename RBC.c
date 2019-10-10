@@ -53,11 +53,19 @@ bool update_local_rbc(char* id, short local)
 {
     for (int i=0; i < (trains -> trains)[trains -> nb_trains]; i++){
         if (strcmp(id, ((trains -> trains)[i]) -> id)){
-            ((trains -> trains)[i] -> local) = local;
+            (trains -> trains)[i] -> local = local;
             return true;
         }
     }
     return false;
+}
+
+bool update_eoa_rbc(void){
+    // The structure trains.trains must be sorted by growing local
+    for (int i=0; i < ((trains -> trains)[trains -> nb_trains]) - 1; i++){
+        (trains -> trains)[i] -> eoa = ((trains -> trains)[i+1] -> local) - 1;
+    }
+    return true;
 }
 
 
