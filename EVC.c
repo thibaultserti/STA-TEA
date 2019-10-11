@@ -30,8 +30,13 @@ int main(int argc , char *argv[])
 	
 	puts("Connected");
 	puts("Sending data…");
-	char* data = argv[2];
-	if( send(socket_desc, data, strlen(data), 0)<0)
+	char data[10];
+	char* id = argv[2];
+	char* localisation = argv[3];
+	strcat(data,id);
+	strcat(data, ":");
+	strcat(data,localisation);
+	if (send(socket_desc, data, strlen(data), 0)<0)
 	{
 		puts("Failed to send data");
 		return 1;

@@ -72,10 +72,10 @@ bool update_eoa_rbc(void){
 int main()
 {
     // Initialization of the structure trains
-    trains -> nb_trains = 0;
+    /*trains -> nb_trains = 0;
     for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
         (trains -> trains)[i] = NULL;
-    }
+    }*/
 
     int sock, length;
     struct sockaddr_in server;
