@@ -9,12 +9,15 @@
 #include "RBC.h"
 
 Trains trains;
+const char* separator = ":";
+
 
 bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains.nb_trains); i++){
         if (strcmp(*(t -> id), *((trains.trains)[i]) -> id)){
+            
             return false;
         }
     }
@@ -40,7 +43,7 @@ bool remove_to_rbc(Train *t)
             break;
         }
     }
-    if(removable){
+    if (removable){
         (trains.trains)[i] = 0;
         return true;
     }
@@ -80,7 +83,7 @@ int main()
     int sock, length;
     struct sockaddr_in server;
     int datasock;
-    char buf[1024];
+    char data[1024];
     int rval;
 
     /* Create socket */
@@ -118,15 +121,24 @@ int main()
             perror("Accept");
             return EXIT_FAILURE;
         } else do {
-            memset(buf, 0, sizeof(buf));
-            if ((rval  = read(datasock, buf,  1024)) < 0)
+            memset(data, 0, sizeof(data));
+            if ((rval  = read(datasock, data,  1024)) < 0)
             {
                 perror("Reading stream message");
             }
             else if (rval == 0)
                 printf("Ending connection\n");
-            else
-                printf("-->%s\n", buf);
+            else {
+                printf("-->%s\n", data);
+                char *id, *local;
+                id = strtok(data,separator);
+                local = strtok(NULL,separator);
+                Train t = {id, local, (char*) 100};
+                bool is_added = add_to_rbc(&t);
+                if (is_added){
+                    update_eoa_rbc();
+                }
+            }
         } while (rval > 0);
         close(datasock);
     } while (true);
