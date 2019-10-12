@@ -79,7 +79,7 @@ bool update_eoa_rbc(void){
 }
 
 void print_trains(void){
-    printf(" NAME LOC EOA\n");
+    printf("NAME   LOC EOA\n");
     for (int i = 0; i < (trains.nb_trains); i++) {
         printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
     }
@@ -87,6 +87,7 @@ void print_trains(void){
 
 int main()
 {
+
     // Initialization of the structure trains
     trains.nb_trains = 0;
     for (int i = 0; i < sizeof(trains.trains) / sizeof(Train); i++){
@@ -147,9 +148,7 @@ int main()
                 id = strtok(data,separator);
                 local = strtok(NULL,separator);
                 short signed local_ = atoi(local);
-                char *id_ = id;
-                printf("%s %d\n", id_, local_);
-                Train t = {.id=*id_, .local=local_, .eoa=100};
+                Train t = {.id=id, .local=local_, .eoa=100};
                 bool is_added = add_to_rbc(&t);
                 if (is_added){
                     update_eoa_rbc();
