@@ -158,6 +158,9 @@ int main()
                 if (is_added){
                     update_eoa_rbc();
                 }
+                else{
+                    update_local_rbc(t -> id, t -> local);
+                }
                 if (t -> local == 100) {
                     remove_from_rbc(t);
                     }
