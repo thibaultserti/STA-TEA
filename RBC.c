@@ -16,8 +16,8 @@ bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id)){
-            printf("The train has not been added becaus it was already registered.");
+        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0){
+            printf("The train has not been added because it was already registered.\n");
             return false;
         }
     }
@@ -39,7 +39,7 @@ bool remove_to_rbc(Train *t)
     bool removable = false;
     int i;
     for (i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id))
+        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0)
         {
             removable = true;
             break;
@@ -59,7 +59,7 @@ bool remove_to_rbc(Train *t)
 bool update_local_rbc(char* id, short local)
 {
     for (int i=0; i < (trains.nb_trains); i++){
-        if (strcmp(id, (trains.trains)[i] -> id)){
+        if (strcmp(id, (trains.trains)[i] -> id) == 0){
             (trains.trains)[i] -> local = local;
             printf("The localisation has been updated.\n");
             return true;
@@ -152,8 +152,8 @@ int main()
                 bool is_added = add_to_rbc(&t);
                 if (is_added){
                     update_eoa_rbc();
-                    print_trains();
                 }
+                print_trains();
             }
         } while (rval > 0);
         close(datasock);
