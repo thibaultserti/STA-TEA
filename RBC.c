@@ -119,7 +119,7 @@ int main()
 
     /* Find out assigned port number and print it out */
     length = sizeof(server);
-    printf("getsockname");
+    printf("Getsockname\n");
     if (getsockname(sock, (struct sockaddr *)&server, &length)) {
         perror("Getting socket name");
         exit(1);
