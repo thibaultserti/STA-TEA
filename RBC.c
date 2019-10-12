@@ -8,23 +8,28 @@
 #include <stdlib.h>
 #include "RBC.h"
 
-Trains *trains;
+Trains trains;
+const char* separator = ":";
+
 
 bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
-    for (int i = 0; i < (trains -> nb_trains); i++){
-        if (strcmp(*(t -> id), *((trains -> trains)[i]) -> id)){
+    for (int i = 0; i < (trains.nb_trains); i++){
+        if (strcmp(t -> id, (trains.trains)[i] -> id)){
+            printf("The train has not been added becaus it was already registered.");
             return false;
         }
     }
     // Then if the numebr of trains is less than 100, we add the new train to the structure
-    if ((trains -> nb_trains) < 100){
-        (trains -> trains)[trains -> nb_trains] = t;
-        (trains -> nb_trains) ++;
+    if ((trains.nb_trains) < 100){
+        (trains.trains)[trains.nb_trains] = t;
+        (trains.nb_trains) ++;
+        printf("The train has been added.\n");
         return true;
     }
     else {
+        printf("Max trains has been reached ! Train not added !\n");
         return false;
     }
 }
@@ -33,54 +38,65 @@ bool remove_to_rbc(Train *t)
 {
     bool removable = false;
     int i;
-    for (i = 0; i < (trains -> nb_trains); i++){
-        if (strcmp(*(t -> id), *((trains -> trains)[i])->id))
+    for (i = 0; i < (trains.nb_trains); i++){
+        if (strcmp(t -> id, (trains.trains)[i] -> id))
         {
             removable = true;
             break;
         }
     }
-    if(removable){
-        (trains -> trains)[i] = 0;
+    if (removable){
+        (trains.trains)[i] = 0;
+        printf("The train has properly been removed.\n");
         return true;
     }
     else{
+        printf("The train doesn't exist !\n");
         return false;
     }
 }
 
 bool update_local_rbc(char* id, short local)
 {
-    for (int i=0; i < (trains -> nb_trains); i++){
-        if (strcmp(id, *((trains -> trains)[i]) -> id)){
-            (trains -> trains)[i] -> local = local;
+    for (int i=0; i < (trains.nb_trains); i++){
+        if (strcmp(id, (trains.trains)[i] -> id)){
+            (trains.trains)[i] -> local = local;
+            printf("The localisation has been updated.\n");
             return true;
         }
     }
+    printf("The train has not been found.\n");
     return false;
 }
 
 bool update_eoa_rbc(void){
     // The structure trains.trains must be sorted by growing local
-    for (int i=0; i < (trains -> nb_trains) - 1; i++){
-        (trains -> trains)[i] -> eoa = ((trains -> trains)[i+1] -> local) - 1;
+    for (int i=0; i < (trains.nb_trains) - 1; i++){
+        (trains.trains)[i] -> eoa = ((trains.trains)[i+1] -> local) - 1;
     }
+    printf("The EOA has been updated.\n");
     return true;
 }
 
+void print_trains(void){
+    printf(" NAME LOC EOA\n");
+    for (int i = 0; i < (trains.nb_trains); i++) {
+        printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+    }
+}
 
 int main()
 {
     // Initialization of the structure trains
-    /*trains -> nb_trains = 0;
-    for (int i = 0; i < sizeof(trains -> trains) / sizeof(Train); i++){
-        (trains -> trains)[i] = NULL;
-    }*/
+    trains.nb_trains = 0;
+    for (int i = 0; i < sizeof(trains.trains) / sizeof(Train); i++){
+        (trains.trains)[i] = NULL;
+    }
 
     int sock, length;
     struct sockaddr_in server;
     int datasock;
-    char buf[1024];
+    char data[1024];
     int rval;
 
     /* Create socket */
@@ -103,7 +119,7 @@ int main()
 
     /* Find out assigned port number and print it out */
     length = sizeof(server);
-    printf("getsockname");
+    printf("Getsockname\n");
     if (getsockname(sock, (struct sockaddr *)&server, &length)) {
         perror("Getting socket name");
         exit(1);
@@ -118,15 +134,28 @@ int main()
             perror("Accept");
             return EXIT_FAILURE;
         } else do {
-            memset(buf, 0, sizeof(buf));
-            if ((rval  = read(datasock, buf,  1024)) < 0)
+            memset(data, 0, sizeof(data));
+            if ((rval  = read(datasock, data,  1024)) < 0)
             {
                 perror("Reading stream message");
             }
             else if (rval == 0)
                 printf("Ending connection\n");
-            else
-                printf("-->%s\n", buf);
+            else {
+                printf("-->%s\n", data);
+                char *id, *local = NULL;
+                id = strtok(data,separator);
+                local = strtok(NULL,separator);
+                short signed local_ = atoi(local);
+                char *id_ = id;
+                printf("%s %d\n", id_, local_);
+                Train t = {.id=*id_, .local=local_, .eoa=100};
+                bool is_added = add_to_rbc(&t);
+                if (is_added){
+                    update_eoa_rbc();
+                    print_trains();
+                }
+            }
         } while (rval > 0);
         close(datasock);
     } while (true);

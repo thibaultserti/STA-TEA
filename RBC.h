@@ -10,7 +10,7 @@ typedef int bool;
 
 typedef struct train
 {
-    char* id[MAX_LENG_ID];
+    char id[MAX_LENG_ID];
     short signed local;
     short signed eoa;
 
