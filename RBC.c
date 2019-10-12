@@ -34,7 +34,7 @@ bool add_to_rbc(Train *t)
     }
 }
 
-bool remove_to_rbc(Train *t)
+bool remove_from_rbc(Train *t)
 {
     bool removable = false;
     int i;
@@ -148,11 +148,19 @@ int main()
                 id = strtok(data,separator);
                 local = strtok(NULL,separator);
                 short signed local_ = atoi(local);
-                Train t = {.id=id, .local=local_, .eoa=100};
-                bool is_added = add_to_rbc(&t);
+                
+                Train *t = malloc(sizeof(Train));
+                t -> id = id;
+                t -> local = local_;
+                t -> eoa = 100;
+
+                bool is_added = add_to_rbc(t);
                 if (is_added){
                     update_eoa_rbc();
                 }
+                if (t -> local == 100) {
+                    remove_from_rbc(t);
+                    }
                 print_trains();
             }
         } while (rval > 0);

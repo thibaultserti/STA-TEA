@@ -58,6 +58,7 @@ int main(int argc , char *argv[])
 			puts("Data sent : ");
 			puts(temp);
 		}
-	}while(localisation_ <= 100);
+	}while(localisation_ < 100);
+	
 	return 1;
 }
