@@ -17,7 +17,7 @@ const char* separator = ":";
  * */
 void* connection_handler(void *sock)
 {
-    int number_train;
+    int num_train;
     int datasock = *(int*)sock;
     int rval;
     int wval;
@@ -40,7 +40,7 @@ void* connection_handler(void *sock)
         /* If the train stopped, wait until he has authorisation */
         if(strcmp(signal,"STOP")==0)
         {
-            while(trains.trains[number_train] -> eoa <= trains.trains[number_train] -> local){
+            while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
                 sleep(1);
             }
             signal = "START";
@@ -54,7 +54,7 @@ void* connection_handler(void *sock)
         else if (rval == 0)
             printf("Ending connection\n");
         else {
-            //printf("-->%s\n", data);
+            printf("-->%s\n", data);
             char *id, *local = NULL;
             id = strtok(data,separator);
             local = strtok(NULL,separator);
@@ -79,14 +79,14 @@ void* connection_handler(void *sock)
             /* Go through array of trains to get the right number of train*/
             for(int i =0; i<trains.nb_trains; i++)
             {
-                if(strncmp(trains.trains[i] -> id,t -> id,MAX_LENGTH_ID)){
-                    number_train = i;
+                if(strncmp(trains.trains[i] -> id,t -> id, MAX_LENGTH_ID) == 0){
+                    num_train = i;
                     break;
                 }
             }
-            if (trains.trains[number_train] -> eoa <= trains.trains[number_train] -> local)
+            if (trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local)
             {
-                puts("Arrêt du train");
+                printf("Arrêt du train %s", trains.trains[num_train] -> id);
                 signal = "STOP";
             }
         }

@@ -12,7 +12,7 @@ int main(int argc , char *argv[])
 {
 	int socket_desc;
 	struct sockaddr_in server;
-	is_moving = true;
+	bool is_moving = true;
 	
 	//Create socket
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
@@ -61,15 +61,11 @@ int main(int argc , char *argv[])
 			}
 			if ((strcmp(data_received,"START"))==0)
 			{
-				printf("%d\n",rcv);
-				puts("true");
 				printf("%s\n",data_received);
 				is_moving = true;
 			}
 			if ((strcmp(data_received,"STOP"))==0)
 			{
-				printf("%d\n",rcv);
-				puts("false");
 				printf("%s\n",data_received);
 				is_moving = false;
 			}
@@ -77,7 +73,6 @@ int main(int argc , char *argv[])
 			if(is_moving) // Simulates the train moving at the speed of argv[4]
 			{
 				sleep(atoi(argv[4]));
-				localisation_++;
 				sprintf(localisation, "%d", localisation_);
 				char temp[9] = "";
 				strcat(temp,id);
@@ -90,6 +85,8 @@ int main(int argc , char *argv[])
 					puts("Data sent : ");
 					puts(temp);
 				}
+				localisation_++;
+
 			}
 		
 	} while(localisation_ < 100);
