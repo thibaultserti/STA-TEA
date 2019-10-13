@@ -42,16 +42,14 @@ void* connection_handler(void *sock)
             t -> id = id;
             t -> local = local_;
             t -> eoa = 100;
-         bool is_added = add_to_rbc(t);
-            if (is_added){
-                update_eoa_rbc();
-            }
-            else{
+            bool is_added = add_to_rbc(t);
+            if (!is_added){
                 update_local_rbc(t -> id, t -> local);
             }
             if (t -> local == 100) {
                 remove_from_rbc(t);
                 }
+            update_eoa_rbc();
             print_trains();
         }
     } while (rval > 0);
@@ -75,7 +73,7 @@ bool add_to_rbc(Train *t)
         // We add the train at the right place (trains.trains is sorted by growing localisation)
         int j = trains.nb_trains;
         for (int i = 0; i < (trains.nb_trains); i++){
-            if ((trains.trains[i] -> local) < (t -> local)){
+            if ((trains.trains[i] -> local) > (t -> local)){
                 j = i - 1;
                 break;
             }
