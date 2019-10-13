@@ -1,7 +1,7 @@
 #ifndef DEF_RBC
 #define DEF_RBC
 
-#define MAX_LENGTH_ID 6
+#define MAX_LENGTH_ID 7
 #define MAX_NB_TRAINS 100
 #define MAX_REQUEST 5
 

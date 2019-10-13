@@ -32,7 +32,7 @@ void* connection_handler(void *sock)
         else if (rval == 0)
             printf("Ending connection\n");
         else {
-            printf("-->%s\n", data);
+            //printf("-->%s\n", data);
             char *id, *local = NULL;
             id = strtok(data,separator);
             local = strtok(NULL,separator);
@@ -65,7 +65,7 @@ bool add_to_rbc(Train *t)
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains.nb_trains); i++){
         if (strcmp(t -> id, (trains.trains)[i] -> id) == 0){
-            printf("The train has not been added because it was already registered.\n");
+            //perror("The train has not been added because it was already registered.\n");
             return false;
         }
     }
@@ -88,7 +88,7 @@ bool add_to_rbc(Train *t)
         return true;
     }
     else {
-        printf("Max trains has been reached ! Train not added !\n");
+        perror("Max trains has been reached ! Train not added !\n");
         return false;
     }
 }
@@ -111,7 +111,7 @@ bool remove_from_rbc(Train *t)
         return true;
     }
     else{
-        printf("The train doesn't exist !\n");
+        perror("The train doesn't exist !\n");
         return false;
     }
 }
@@ -121,11 +121,11 @@ bool update_local_rbc(char* id, short local)
     for (int i=0; i < (trains.nb_trains); i++){
         if (strcmp(id, (trains.trains)[i] -> id) == 0){
             (trains.trains)[i] -> local = local;
-            printf("The localisation has been updated.\n");
+            //perror("The localisation has been updated.\n");
             return true;
         }
     }
-    printf("The train has not been found.\n");
+    perror("The train has not been found.\n");
     return false;
 }
 
@@ -134,7 +134,7 @@ bool update_eoa_rbc(void){
     for (int i=0; i < (trains.nb_trains) - 1; i++){
         (trains.trains)[i] -> eoa = ((trains.trains)[i+1] -> local) - 1;
     }
-    printf("The EOA has been updated.\n");
+    //perror("The EOA has been updated.\n");
     return true;
 }
 
