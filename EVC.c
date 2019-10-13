@@ -6,20 +6,19 @@
 #include<string.h>
 #include "EVC.h"
 
-#define ENOUGH ((CHAR_BIT * sizeof(int) - 1) / 3 + 2)
-
 char *separator = ":";
 
 int main(int argc , char *argv[])
 {
 	int socket_desc;
 	struct sockaddr_in server;
+	is_moving = true;
 	
 	//Create socket
-	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_desc == -1)
 	{
-		printf("Could not create socket");
+		printf("Could not create socket\n");
 	}
 		
 	server.sin_addr.s_addr = inet_addr(argv[1]);
@@ -29,7 +28,7 @@ int main(int argc , char *argv[])
 	//Connect to remote server
 	if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0)
 	{
-		puts("Could not connect to RBC");
+		puts("Could not connect to RBC\n");
 		return 1;
 	}
 	
@@ -43,21 +42,44 @@ int main(int argc , char *argv[])
 	strcat(data,localisation);
 
 	int localisation_ = atoi(localisation);
-	do{
-		sleep(atoi(argv[4]));
-		localisation_++;
-		sprintf(localisation, "%d", localisation_);
-		char temp[9] = "";
-		strcat(temp,id);
-		strcat(temp,separator);
-		strcat(temp,localisation);
+	if (socket_desc == -1)
+	{
+		perror("Accept");
+	} else do {
+		if(is_moving) // Simulates the train moving at the speed of argv[4]
+		{
+			sleep(atoi(argv[4]));
+			localisation_++;
+			sprintf(localisation, "%d", localisation_);
+			char temp[9] = "";
+			strcat(temp,id);
+			strcat(temp,separator);
+			strcat(temp,localisation);
 
-		if (send(socket_desc, temp, strlen(temp), 0)<0)
-			puts("Could not send data to RBC, dropping signal");
-		else{
-			puts("Data sent : ");
-			puts(temp);
+			if (send(socket_desc, temp, strlen(temp), 0)<0)
+				puts("Could not send data to RBC, dropping signal");
+			else{
+				puts("Data sent : ");
+				puts(temp);
+			}
 		}
+		else // If the train stopped moving
+		{
+			int rcv;
+			if((rcv = read(socket_desc, data, 1024)) < 0)
+			{
+				perror("Reading stream message");
+			}
+			else if (rcv == 0)
+			{
+				perror("Ending connection\n");
+			}
+			else
+			{
+				is_moving = true;
+			}
+		}
+		
 	} while(localisation_ < 100);
 	return 1;
 }
