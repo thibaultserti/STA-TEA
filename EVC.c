@@ -45,41 +45,67 @@ int main(int argc , char *argv[])
 	if (socket_desc == -1)
 	{
 		perror("Accept");
-	} else do {
-		if(is_moving) // Simulates the train moving at the speed of argv[4]
-		{
-			sleep(atoi(argv[4]));
-			localisation_++;
-			sprintf(localisation, "%d", localisation_);
-			char temp[9] = "";
-			strcat(temp,id);
-			strcat(temp,separator);
-			strcat(temp,localisation);
-
-			if (send(socket_desc, temp, strlen(temp), 0)<0)
-				puts("Could not send data to RBC, dropping signal");
-			else{
-				puts("Data sent : ");
-				puts(temp);
-			}
+	} 
+	else{
+		sleep(atoi(argv[4]));
+		localisation_++;
+		sprintf(localisation, "%d", localisation_);
+		char temp[9] = "";
+		strcat(temp,id);
+		strcat(temp,separator);
+		strcat(temp,localisation);
+		if (send(socket_desc, temp, strlen(temp), 0)<0)
+			puts("Could not send data to RBC, dropping signal");
+		else{
+			puts("Data sent : ");
+			puts(temp);
 		}
-		else // If the train stopped moving
-		{
+		do {
+			char data_received[1024] = "";
+			memset(data_received, 0, sizeof(data_received));
 			int rcv;
-			if((rcv = read(socket_desc, data, 1024)) < 0)
+			if((rcv = read(socket_desc, data_received, 1024)) < 0)
 			{
 				perror("Reading stream message");
 			}
-			else if (rcv == 0)
+			if (rcv == 0)
 			{
 				perror("Ending connection\n");
 			}
-			else
+			if ((strcmp(data_received,"START"))==0)
 			{
+				printf("%d\n",rcv);
+				puts("true");
+				printf("%s\n",data_received);
 				is_moving = true;
 			}
-		}
+			if ((strcmp(data_received,"STOP"))==0)
+			{
+				printf("%d\n",rcv);
+				puts("false");
+				printf("%s\n",data_received);
+				is_moving = false;
+			}
+
+			if(is_moving) // Simulates the train moving at the speed of argv[4]
+			{
+				sleep(atoi(argv[4]));
+				localisation_++;
+				sprintf(localisation, "%d", localisation_);
+				char temp[9] = "";
+				strcat(temp,id);
+				strcat(temp,separator);
+				strcat(temp,localisation);
+
+				if (send(socket_desc, temp, strlen(temp), 0)<0)
+					puts("Could not send data to RBC, dropping signal");
+				else{
+					puts("Data sent : ");
+					puts(temp);
+				}
+			}
 		
 	} while(localisation_ < 100);
+	}
 	return 1;
 }

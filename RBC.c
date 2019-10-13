@@ -21,10 +21,21 @@ void* connection_handler(void *sock)
     int rval;
     int wval;
     char data[1024];
-    char *signal = "STOP";
+    char *signal = "START";
     if (datasock == -1) {
         perror("Accept");
     } else do {
+        /* Autorisation d'avancer ou non*/
+        wval = send(datasock, signal, strlen(signal), 0);
+        if(wval < 0)
+        {
+            perror("Writing stream message");
+        }
+        else{
+            puts("Data sent :");
+            puts(signal);
+        }
+
         memset(data, 0, sizeof(data));
         if ((rval  = read(datasock, data,  1024)) < 0)
         {
@@ -54,25 +65,21 @@ void* connection_handler(void *sock)
                 remove_from_rbc(t);
             }
             update_eoa_rbc();
-            printf("eoa : %d  local : %d \n", t -> eoa, t ->local);
-            if (t -> eoa <= t -> local)
+
+            /* Go through array trains */
+            int j;
+            for(int i =0; i<trains.nb_trains; i++)
+            {
+                if(strncmp(trains.trains[i] -> id,t -> id,MAX_LENGTH_ID)){
+                    j = i;
+                    break;
+                }
+            }
+            if (trains.trains[j] -> eoa <= trains.trains[j] -> local)
             {
                 puts("Train arrête toi !");
                 signal = "STOP";
-                while(strcmp(signal,"STOP") == 0)
-                {
-                    if ((wval = write(datasock, signal, 1024)) < 0)
-                    {
-                        perror("Writing stream message");
-                    }
-                    else if (rval == 0)
-                        printf("Ending connection\n");
-                    else {
-                        signal = "START";
-                    }
-                }
             }
-            print_trains();
         }
     } while (rval > 0);
     close(datasock);
