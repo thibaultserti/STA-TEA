@@ -6,8 +6,6 @@
 #include<string.h>
 #include "EVC.h"
 
-#define ENOUGH ((CHAR_BIT * sizeof(int) - 1) / 3 + 2)
-
 char *separator = ":";
 
 int main(int argc , char *argv[])
