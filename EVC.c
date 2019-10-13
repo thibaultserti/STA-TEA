@@ -88,8 +88,7 @@ int main(int argc , char *argv[])
 				localisation_++;
 
 			}
-		
-	} while(localisation_ < 100);
+		} while(localisation_ < 100);
 	}
 	return 1;
 }

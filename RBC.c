@@ -43,7 +43,9 @@ void* connection_handler(void *sock)
             while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
                 sleep(1);
             }
+            printf("Train %s starts again !\n", trains.trains[num_train] -> id);
             signal = "START";
+            continue; // /!\ fixed #11
         }
 
         memset(data, 0, sizeof(data));
@@ -54,7 +56,7 @@ void* connection_handler(void *sock)
         else if (rval == 0)
             printf("Ending connection\n");
         else {
-            printf("-->%s\n", data);
+            //printf("-->%s\n", data);
             char *id, *local = NULL;
             id = strtok(data,separator);
             local = strtok(NULL,separator);
@@ -79,16 +81,17 @@ void* connection_handler(void *sock)
             /* Go through array of trains to get the right number of train*/
             for(int i =0; i<trains.nb_trains; i++)
             {
-                if(strncmp(trains.trains[i] -> id,t -> id, MAX_LENGTH_ID) == 0){
+                if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
                     num_train = i;
                     break;
                 }
             }
             if (trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local)
             {
-                printf("Arrêt du train %s", trains.trains[num_train] -> id);
+                printf("Train %s stops !\n", trains.trains[num_train] -> id);
                 signal = "STOP";
             }
+            
         }
     } while (rval > 0);
     puts("Connection ended");
