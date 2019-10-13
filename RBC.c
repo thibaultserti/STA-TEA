@@ -33,14 +33,16 @@ void* connection_handler(void *sock)
         else if (rval == 0)
             printf("Ending connection\n");
         else {
-            printf("-->%s\n", data);
+            //printf("-->%s\n", data);
             char *id, *local = NULL;
             id = strtok(data,separator);
             local = strtok(NULL,separator);
             short signed local_ = atoi(local);
             
             Train *t = malloc(sizeof(Train));
-            t -> id = id;
+            for (int i = 0; i < MAX_LENGTH_ID; i++) {
+                t -> id[i] = id[i];
+            }
             t -> local = local_;
             t -> eoa = 100;
             bool is_added = add_to_rbc(t);
@@ -83,8 +85,8 @@ bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0){
-            printf("The train has not been added because it was already registered.\n");
+        if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
+            //perror("The train has not been added because it was already registered.\n");
             return false;
         }
     }
@@ -94,7 +96,7 @@ bool add_to_rbc(Train *t)
         int j = trains.nb_trains;
         for (int i = 0; i < (trains.nb_trains); i++){
             if ((trains.trains[i] -> local) > (t -> local)){
-                j = i - 1;
+                j = i;
                 break;
             }
         }
@@ -107,7 +109,7 @@ bool add_to_rbc(Train *t)
         return true;
     }
     else {
-        printf("Max trains has been reached ! Train not added !\n");
+        perror("Max trains has been reached ! Train not added !\n");
         return false;
     }
 }
@@ -117,7 +119,7 @@ bool remove_from_rbc(Train *t)
     bool removable = false;
     int i;
     for (i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0)
+        if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0)
         {
             removable = true;
             break;
@@ -130,7 +132,7 @@ bool remove_from_rbc(Train *t)
         return true;
     }
     else{
-        printf("The train doesn't exist !\n");
+        perror("The train doesn't exist !\n");
         return false;
     }
 }
@@ -138,13 +140,13 @@ bool remove_from_rbc(Train *t)
 bool update_local_rbc(char* id, short local)
 {
     for (int i=0; i < (trains.nb_trains); i++){
-        if (strcmp(id, (trains.trains)[i] -> id) == 0){
+        if (strncmp(id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
             (trains.trains)[i] -> local = local;
-            printf("The localisation has been updated.\n");
+            //perror("The localisation has been updated.\n");
             return true;
         }
     }
-    printf("The train has not been found.\n");
+    perror("The train has not been found.\n");
     return false;
 }
 
@@ -153,14 +155,17 @@ bool update_eoa_rbc(void){
     for (int i=0; i < (trains.nb_trains) - 1; i++){
         (trains.trains)[i] -> eoa = ((trains.trains)[i+1] -> local) - 1;
     }
-    printf("The EOA has been updated.\n");
+    //perror("The EOA has been updated.\n");
     return true;
 }
 
-void print_trains(void){
-    printf("NAME   LOC EOA\n");
-    for (int i = 0; i < (trains.nb_trains); i++) {
-        printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+void* print_trains(void* arg){
+    while (1) {
+        printf("NAME   LOC EOA\n");
+        for (int i = 0; i < (trains.nb_trains); i++) {
+            printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+        }
+        sleep(1);    
     }
 }
 
@@ -204,6 +209,9 @@ int main()
         exit(1);
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
+    
+    pthread_t thread;
+    pthread_create(&thread, NULL, print_trains, NULL);
 
     /* Accepting incoming connections */
     listen(sock, MAX_REQUEST);
@@ -230,6 +238,6 @@ int main()
         perror("Could not accept connection");
         return 1;
     }
-
+    pthread_join(thread,NULL);
     return 0;
 }

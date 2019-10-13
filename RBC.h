@@ -1,6 +1,7 @@
 #ifndef DEF_RBC
 #define DEF_RBC
 
+#define MAX_LENGTH_ID 7
 #define MAX_NB_TRAINS 100
 #define MAX_REQUEST 5
 
@@ -10,7 +11,7 @@ typedef int bool;
 
 typedef struct train
 {
-    char *id;
+    char id[MAX_LENGTH_ID];
     short signed local;
     short signed eoa;
 
@@ -30,7 +31,7 @@ bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
 bool check_eoa(void); /* send SIG_STOP if the train 2 is right behind the train 1; send SIG_CONTINUE otherwise */
 bool update_eoa_rbc(void);
-void *connection_handler(void *sock);
-void print_trains(void);
+void* connection_handler(void *sock);
+void* print_trains(void *arg);
 
 #endif
