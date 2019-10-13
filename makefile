@@ -5,10 +5,10 @@ CC=gcc
 all: RBC EVC
 
 RBC: RBC.c
-	gcc -o RBC RBC.c
+	$(CC) -o RBC RBC.c $(CFLAGS) $(LFLAGS)
 
 EVC: EVC.c
-	gcc -o EVC EVC.c
+	$(CC) -o EVC EVC.c $(CFLAGS) $(LFLAGS)
 
 force:
 	touch RBC.c
