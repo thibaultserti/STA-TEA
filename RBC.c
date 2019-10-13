@@ -168,7 +168,8 @@ int main()
     /* Find out assigned port number and print it out */
     length = sizeof(server);
     printf("Getsockname\n");
-    if (getsockname(sock, (struct sockaddr *)&server, (socklen_t * restrict)&length)) {
+
+    if (getsockname(sock, (struct sockaddr *) &server, (socklen_t * restrict) &length)) {
         perror("Getting socket name");
         exit(1);
     }
