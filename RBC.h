@@ -1,6 +1,7 @@
 #ifndef DEF_RBC
 #define DEF_RBC
 
+#define MAX_LENGTH_ID 6
 #define MAX_NB_TRAINS 100
 #define MAX_REQUEST 5
 
@@ -10,7 +11,7 @@ typedef int bool;
 
 typedef struct train
 {
-    char id[100];
+    char id[MAX_LENGTH_ID];
     short signed local;
     short signed eoa;
 

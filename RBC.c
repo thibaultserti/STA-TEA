@@ -39,7 +39,7 @@ void* connection_handler(void *sock)
             short signed local_ = atoi(local);
             
             Train *t = malloc(sizeof(Train));
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < MAX_LENGTH_ID; i++) {
                 t -> id[i] = id[i];
             }
             t -> local = local_;
