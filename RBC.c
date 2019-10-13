@@ -6,10 +6,59 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "RBC.h"
 
 Trains trains;
 const char* separator = ":";
+
+/*
+ * This will handle connection for each client
+ * */
+void* connection_handler(void *sock)
+{
+
+    int datasock = *(int*)sock;
+    int rval;
+    char data[1024];
+    if (datasock == -1) {
+        perror("Accept");
+    } else do {
+        memset(data, 0, sizeof(data));
+        if ((rval  = read(datasock, data,  1024)) < 0)
+        {
+            perror("Reading stream message");
+        }
+        else if (rval == 0)
+            printf("Ending connection\n");
+        else {
+            printf("-->%s\n", data);
+            char *id, *local = NULL;
+            id = strtok(data,separator);
+            local = strtok(NULL,separator);
+            short signed local_ = atoi(local);
+            
+            Train *t = malloc(sizeof(Train));
+            t -> id = id;
+            t -> local = local_;
+            t -> eoa = 100;
+         bool is_added = add_to_rbc(t);
+            if (is_added){
+                update_eoa_rbc();
+            }
+            else{
+                update_local_rbc(t -> id, t -> local);
+            }
+            if (t -> local == 100) {
+                remove_from_rbc(t);
+                }
+            print_trains();
+        }
+    } while (rval > 0);
+    close(datasock);
+	free(sock);	
+    return 0;
+}
 
 
 bool add_to_rbc(Train *t)
@@ -96,10 +145,7 @@ int main()
     }
 
     int sock, length;
-    struct sockaddr_in server;
-    int datasock;
-    char data[1024];
-    int rval;
+    struct sockaddr_in server, client;
 
     /* Create socket */
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -122,52 +168,36 @@ int main()
     /* Find out assigned port number and print it out */
     length = sizeof(server);
     printf("Getsockname\n");
-    if (getsockname(sock, (struct sockaddr *)&server, &length)) {
+    if (getsockname(sock, (struct sockaddr *)&server, (socklen_t * restrict)&length)) {
         perror("Getting socket name");
         exit(1);
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
 
     /* Accepting incoming connections */
-    listen(sock, 5);
-    do {
-        datasock = accept(sock, 0, 0);
-        if (datasock == -1) {
-            perror("Accept");
-            return EXIT_FAILURE;
-        } else do {
-            memset(data, 0, sizeof(data));
-            if ((rval  = read(datasock, data,  1024)) < 0)
-            {
-                perror("Reading stream message");
-            }
-            else if (rval == 0)
-                printf("Ending connection\n");
-            else {
-                printf("-->%s\n", data);
-                char *id, *local = NULL;
-                id = strtok(data,separator);
-                local = strtok(NULL,separator);
-                short signed local_ = atoi(local);
-                
-                Train *t = malloc(sizeof(Train));
-                t -> id = id;
-                t -> local = local_;
-                t -> eoa = 100;
+    listen(sock, MAX_REQUEST);
+    int c = sizeof(struct sockaddr_in);
+    int new_socket;
+    while ((new_socket = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)))
+    {
+        pthread_t thread;
+        int *new_sock = malloc(1);
+        *new_sock = new_socket;
 
-                bool is_added = add_to_rbc(t);
-                if (is_added){
-                    update_eoa_rbc();
-                }
-                else{
-                    update_local_rbc(t -> id, t -> local);
-                }
-                if (t -> local == 100) {
-                    remove_from_rbc(t);
-                    }
-                print_trains();
-            }
-        } while (rval > 0);
-        close(datasock);
-    } while (true);
+        if(pthread_create(&thread, NULL, connection_handler, (void*) new_sock)<0)
+        {
+            perror("Could not create thread");
+            return 1;
+        }
+
+        puts("New connection assigned to handler");
+    }
+
+    if(new_socket<0)
+    {
+        perror("Could not accept connection");
+        return 1;
+    }
+
+    return 0;
 }
