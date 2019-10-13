@@ -72,7 +72,18 @@ bool add_to_rbc(Train *t)
     }
     // Then if the numebr of trains is less than 100, we add the new train to the structure
     if ((trains.nb_trains) < 100){
-        (trains.trains)[trains.nb_trains] = t;
+        // We add the train at the right place (trains.trains is sorted by growing localisation)
+        int j = trains.nb_trains;
+        for (int i = 0; i < (trains.nb_trains); i++){
+            if ((trains.trains[i] -> local) < (t -> local)){
+                j = i - 1;
+                break;
+            }
+        }
+        for (int i = trains.nb_trains - 1; i >= j; i --){
+            trains.trains[i+1] = trains.trains[i];
+        }
+        (trains.trains)[j] = t;
         (trains.nb_trains) ++;
         printf("The train has been added.\n");
         return true;
@@ -134,6 +145,7 @@ void print_trains(void){
         printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
     }
 }
+
 
 int main()
 {
