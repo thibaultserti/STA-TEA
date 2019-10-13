@@ -47,19 +47,6 @@ int main(int argc , char *argv[])
 		perror("Accept");
 	} 
 	else{
-		sleep(atoi(argv[4]));
-		localisation_++;
-		sprintf(localisation, "%d", localisation_);
-		char temp[9] = "";
-		strcat(temp,id);
-		strcat(temp,separator);
-		strcat(temp,localisation);
-		if (send(socket_desc, temp, strlen(temp), 0)<0)
-			puts("Could not send data to RBC, dropping signal");
-		else{
-			puts("Data sent : ");
-			puts(temp);
-		}
 		do {
 			char data_received[1024] = "";
 			memset(data_received, 0, sizeof(data_received));
