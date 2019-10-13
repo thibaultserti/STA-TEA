@@ -64,7 +64,7 @@ bool add_to_rbc(Train *t)
 {
     // We first check if the train is not already in our structure
     for (int i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0){
+        if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
             //perror("The train has not been added because it was already registered.\n");
             return false;
         }
@@ -98,7 +98,7 @@ bool remove_from_rbc(Train *t)
     bool removable = false;
     int i;
     for (i = 0; i < (trains.nb_trains); i++){
-        if (strcmp(t -> id, (trains.trains)[i] -> id) == 0)
+        if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0)
         {
             removable = true;
             break;
@@ -119,7 +119,7 @@ bool remove_from_rbc(Train *t)
 bool update_local_rbc(char* id, short local)
 {
     for (int i=0; i < (trains.nb_trains); i++){
-        if (strcmp(id, (trains.trains)[i] -> id) == 0){
+        if (strncmp(id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
             (trains.trains)[i] -> local = local;
             //perror("The localisation has been updated.\n");
             return true;
