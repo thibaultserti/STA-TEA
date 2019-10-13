@@ -42,20 +42,64 @@ int main(int argc , char *argv[])
 
 	int localisation_ = atoi(localisation);
 	do{
-		sleep(atoi(argv[4]));
-		localisation_++;
-		sprintf(localisation, "%d", localisation_);
-		char temp[9] = "";
-		strcat(temp,id);
-		strcat(temp,separator);
-		strcat(temp,localisation);
-
-		if (send(socket_desc, temp, strlen(temp), 0)<0)
-			puts("Could not send data to RBC, dropping signal");
-		else{
-			puts("Data sent : ");
-			puts(temp);
+		// The train verifies if he has the authorization to start.
+		int rval;
+		if((rval = read(socket_desc, data, 1024)) < 0)
+		{
+			perror("Reading stream message");
 		}
+		else if (rval == 0)
+		{
+			perror("Ending connection\n");
+		}
+		else if(rval>0 && strcmp(data,"STOP")==0)
+		{
+			is_moving = false;
+		}
+		else
+		{
+			is_moving = true;
+		}
+		
+
+		if(is_moving) // Simulates the train moving at the speed of argv[4]
+		{
+			sleep(atoi(argv[4]));
+			localisation_++;
+			sprintf(localisation, "%d", localisation_);
+			char temp[9] = "";
+			strcat(temp,id);
+			strcat(temp,separator);
+			strcat(temp,localisation);
+
+			if (send(socket_desc, temp, strlen(temp), 0)<0)
+				puts("Could not send data to RBC, dropping signal");
+			else{
+				puts("Data sent : ");
+				puts(temp);
+			}
+		}
+		else // If the train stopped moving, it verifies every second if he can restart.
+		{
+			while(!is_moving)
+			{
+				sleep(1);
+				int rcv;
+				if((rcv = read(socket_desc, data, 1024)) < 0)
+				{
+					perror("Reading stream message");
+				}
+				else if (rcv == 0)
+				{
+					perror("Ending connection\n");
+				}
+				else if(rcv>0 && strcmp(data,"START")==0)
+				{
+					is_moving = true;
+				}
+			}
+		}
+		
 	} while(localisation_ < 100);
 	return 1;
 }

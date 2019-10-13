@@ -6,9 +6,5 @@ typedef int bool;
 #define false 0
 
 bool is_moving = false;
-short unsigned local;
-
-bool send_local();
-
 
  #endif
