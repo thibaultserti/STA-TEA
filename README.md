@@ -1,6 +1,6 @@
 # STA-TEA
 
-## On the serveur
+## On the server
 ```
 ./RBC
 ```
