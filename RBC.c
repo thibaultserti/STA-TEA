@@ -47,6 +47,7 @@ bool remove_from_rbc(Train *t)
     }
     if (removable){
         (trains.trains)[i] = 0;
+        trains.nb_trains --;
         printf("The train has properly been removed.\n");
         return true;
     }

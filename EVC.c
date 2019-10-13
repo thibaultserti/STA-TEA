@@ -35,7 +35,7 @@ int main(int argc , char *argv[])
 	
 	puts("Connected");
 	puts("Train starting to move…");
-	char data[9];
+	char data[11];
 	char* id = argv[2];
 	char* localisation = argv[3];
 	strcat(data,id);
@@ -59,6 +59,6 @@ int main(int argc , char *argv[])
 			puts(temp);
 		}
 	}while(localisation_ < 100);
-	
+	sleep(3);
 	return 1;
 }
