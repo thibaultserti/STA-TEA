@@ -17,6 +17,7 @@ const char* separator = ":";
  * */
 void* connection_handler(void *sock)
 {
+    int number_train;
     int datasock = *(int*)sock;
     int rval;
     int wval;
@@ -25,7 +26,7 @@ void* connection_handler(void *sock)
     if (datasock == -1) {
         perror("Accept");
     } else do {
-        /* Autorisation d'avancer ou non*/
+        /* Authorisation to move forward */
         wval = send(datasock, signal, strlen(signal), 0);
         if(wval < 0)
         {
@@ -34,6 +35,15 @@ void* connection_handler(void *sock)
         else{
             puts("Data sent :");
             puts(signal);
+        }
+
+        /* If the train stopped, wait until he has authorisation */
+        if(strcmp(signal,"STOP")==0)
+        {
+            while(trains.trains[number_train] -> eoa <= trains.trains[number_train] -> local){
+                sleep(1);
+            }
+            signal = "START";
         }
 
         memset(data, 0, sizeof(data));
@@ -66,22 +76,22 @@ void* connection_handler(void *sock)
             }
             update_eoa_rbc();
 
-            /* Go through array trains */
-            int j;
+            /* Go through array of trains to get the right number of train*/
             for(int i =0; i<trains.nb_trains; i++)
             {
                 if(strncmp(trains.trains[i] -> id,t -> id,MAX_LENGTH_ID)){
-                    j = i;
+                    number_train = i;
                     break;
                 }
             }
-            if (trains.trains[j] -> eoa <= trains.trains[j] -> local)
+            if (trains.trains[number_train] -> eoa <= trains.trains[number_train] -> local)
             {
-                puts("Train arrête toi !");
+                puts("Arrêt du train");
                 signal = "STOP";
             }
         }
     } while (rval > 0);
+    puts("Connection ended");
     close(datasock);
 	free(sock);	
     return 0;
