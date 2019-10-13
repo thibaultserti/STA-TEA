@@ -39,7 +39,9 @@ void* connection_handler(void *sock)
             short signed local_ = atoi(local);
             
             Train *t = malloc(sizeof(Train));
-            t -> id = id;
+            for (int i = 0; i < 6; i++) {
+                t -> id[i] = id[i];
+            }
             t -> local = local_;
             t -> eoa = 100;
             bool is_added = add_to_rbc(t);
@@ -50,7 +52,6 @@ void* connection_handler(void *sock)
                 remove_from_rbc(t);
                 }
             update_eoa_rbc();
-            print_trains();
         }
     } while (rval > 0);
     close(datasock);
@@ -137,10 +138,13 @@ bool update_eoa_rbc(void){
     return true;
 }
 
-void print_trains(void){
-    printf("NAME   LOC EOA\n");
-    for (int i = 0; i < (trains.nb_trains); i++) {
-        printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+void* print_trains(void* arg){
+    while (1) {
+        printf("NAME   LOC EOA\n");
+        for (int i = 0; i < (trains.nb_trains); i++) {
+            printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+        }
+        sleep(1);    
     }
 }
 
@@ -184,6 +188,9 @@ int main()
         exit(1);
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
+    
+    pthread_t thread;
+    pthread_create(&thread, NULL, print_trains, NULL);
 
     /* Accepting incoming connections */
     listen(sock, MAX_REQUEST);
@@ -209,6 +216,6 @@ int main()
         perror("Could not accept connection");
         return 1;
     }
-
+    pthread_join(thread,NULL);
     return 0;
 }

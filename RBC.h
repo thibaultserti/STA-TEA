@@ -10,7 +10,7 @@ typedef int bool;
 
 typedef struct train
 {
-    char *id;
+    char id[100];
     short signed local;
     short signed eoa;
 
@@ -30,7 +30,7 @@ bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
 bool check_eoa(void); /* send SIG_STOP if the train 2 is right behind the train 1; send SIG_CONTINUE otherwise */
 bool update_eoa_rbc(void);
-void *connection_handler(void *sock);
-void print_trains(void);
+void* connection_handler(void *sock);
+void* print_trains(void *arg);
 
 #endif
