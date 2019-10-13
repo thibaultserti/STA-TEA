@@ -74,7 +74,7 @@ bool add_to_rbc(Train *t)
         int j = trains.nb_trains;
         for (int i = 0; i < (trains.nb_trains); i++){
             if ((trains.trains[i] -> local) > (t -> local)){
-                j = i - 1;
+                j = i;
                 break;
             }
         }
