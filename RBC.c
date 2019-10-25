@@ -212,7 +212,7 @@ int main()
     /* Name socket */
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(4242);
+    server.sin_port = htons(PORT_NUMBER);
 
     /* Bind socket */
     if (bind(sock, (struct sockaddr *)&server, sizeof(server))) {
