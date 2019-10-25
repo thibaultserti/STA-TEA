@@ -52,6 +52,7 @@ int main(int argc , char *argv[])
 	
 	printf("Connected");
 	printf("Train starting to move…");
+
 	char data[11];
 	char* id = argv[2];
 	char* localisation = argv[3];
@@ -60,52 +61,46 @@ int main(int argc , char *argv[])
 	strcat(data,localisation);
 
 	int localisation_ = atoi(localisation);
-	if (socket_desc == -1)
-	{
-		perror("Accept");
-	} 
-	else{
-		do {
-			char data_received[1024] = "";
-			memset(data_received, 0, sizeof(data_received));
-			int rcv;
-			if((rcv = read(socket_desc, data_received, 1024)) < 0)
-			{
-				perror("Reading stream message");
-			}
-			if (rcv == 0)
-			{
-				perror("Ending connection\n");
-			}
-			if ((strcmp(data_received,"START"))==0)
-			{
-				printf("%s\n",data_received);
-				is_moving = true;
-			}
-			if ((strcmp(data_received,"STOP"))==0)
-			{
-				printf("%s\n",data_received);
-				is_moving = false;
-			}
+	 
+	do {
+		char data_received[1024] = "";
+		memset(data_received, 0, sizeof(data_received));
+		int rcv;
+		if((rcv = read(socket_desc, data_received, 1024)) < 0)
+		{
+			perror("Reading stream message");
+		}
+		if (rcv == 0)
+		{
+			perror("Ending connection\n");
+		}
+		if ((strcmp(data_received,"START"))==0)
+		{
+			printf("%s\n",data_received);
+			is_moving = true;
+		}
+		if ((strcmp(data_received,"STOP"))==0)
+		{
+			printf("%s\n",data_received);
+			is_moving = false;
+		}
 
-			if(is_moving) // Simulates the train moving at the speed of argv[4]
-			{
-				sleep(atoi(argv[4]));
-				sprintf(localisation, "%d", localisation_);
-				char temp[9] = "";
-				strcat(temp,id);
-				strcat(temp,separator);
-				strcat(temp,localisation);
-
-				if (send(socket_desc, temp, strlen(temp), 0)<0)
-					printf("Could not send data to RBC, dropping signal\n");
-				else{
-					printf("Data sent : %s",temp);
-				}
-				localisation_++;
-
+		if(is_moving) // Simulates the train moving at the speed of argv[4]
+		{
+			sleep(atoi(argv[4]));
+			sprintf(localisation, "%d", localisation_);
+			char temp[9] = "";
+			strcat(temp,id);
+			strcat(temp,separator);
+			strcat(temp,localisation);
+			if (send(socket_desc, temp, strlen(temp), 0)<0)
+				printf("Could not send data to RBC, dropping signal\n");
+			else{
+				printf("Data sent : %s",temp);
 			}
-		} while(localisation_ < 100);
-	}
+			localisation_++;
+
+		}
+	} while(localisation_ < 100);
 	return 1;
 }
