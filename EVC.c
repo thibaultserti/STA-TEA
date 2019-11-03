@@ -25,82 +25,111 @@ void SocketConnect(int socket_desc, char* adresse_hote)
 	server.sin_port = htons(PORT_NUMBER);
 
 	//Vérification de la connection
-	while (return_value < 0)
+	while (true)
 	{
-	        return_value = connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
-		printf("Could not connect to RBC\n");
+	    return_value = connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
+	    perror("Connection\n");
+	    if(return_value<0)
+        {
+            printf("Could not connect to RBC\n");
+        }
+	    if(return_value == 0)
+        {
+            break;
+        }
 	}
+}
+
+int SocketReceive(int socket, char* response, short rcvSize)
+{
+    int rcv = -1;
+    while(rcv<0)
+    {
+        rcv = read(socket, response, rcvSize-1);
+        if(rcv < 0) /*Vérification nécessaire mais pas élégante. L'idéal serait de pouvoir exécuter une instruction
+            qu'après la première instance du while */
+        {
+            perror("Reading stream message");
+        }
+        if (rcv == 0)
+        {
+            perror("Ending connection in receive\n");
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int main(int argc , char *argv[])
 {
-	int socket_desc;
-	bool is_moving = true;
+    do {
+	    int socket_desc;
+	    int connection;
+	    is_moving = true;
 
-	//Création de la socket	
-	socket_desc = SocketCreate();
+	    printf("Trying to connect to RBC\n");
 
-	//Vérification de la création
-	if (socket_desc == -1)
-	{
-		printf("Could not create socket\n");
-		return 0;
-	}
+	    //Création de la socket
+	    socket_desc = SocketCreate();
+	    //Vérification de la création
+	    if (socket_desc == -1)
+	    {
+		    perror("Could not create socket\n");
+		    //on reprend la boucle while
+		    continue;
+	    }
 
-	//Connection au server
-	SocketConnect(socket_desc, argv[1]);
+	    //Connection au server
+	    SocketConnect(socket_desc, argv[1]);
 	
-	printf("Connected");
-	printf("Train starting to move…");
+	    printf("Connected\n");
 
-	char data[11];
-	char* id = argv[2];
-	char* localisation = argv[3];
-	strcat(data,id);
-	strcat(data,separator);
-	strcat(data,localisation);
+	    char data[11];
+	    char* id = argv[2];
+	    char* localisation = argv[3];
+	    strcat(data,id);
+	    strcat(data,separator);
+	    strcat(data,localisation);
 
-	int localisation_ = atoi(localisation);
-	 
-	do {
-		char data_received[1024] = "";
-		memset(data_received, 0, sizeof(data_received));
-		int rcv;
-		if((rcv = read(socket_desc, data_received, 1024)) < 0)
-		{
-			perror("Reading stream message");
-		}
-		if (rcv == 0)
-		{
-			perror("Ending connection\n");
-		}
-		if ((strcmp(data_received,"START"))==0)
-		{
-			printf("%s\n",data_received);
-			is_moving = true;
-		}
-		if ((strcmp(data_received,"STOP"))==0)
-		{
-			printf("%s\n",data_received);
-			is_moving = false;
-		}
+	    int localisation_ = atoi(localisation);
 
-		if(is_moving) // Simulates the train moving at the speed of argv[4]
-		{
-			sleep(atoi(argv[4]));
-			sprintf(localisation, "%d", localisation_);
-			char temp[9] = "";
-			strcat(temp,id);
-			strcat(temp,separator);
-			strcat(temp,localisation);
-			if (send(socket_desc, temp, strlen(temp), 0)<0)
-				printf("Could not send data to RBC, dropping signal\n");
-			else{
-				printf("Data sent : %s",temp);
-			}
-			localisation_++;
+        char response[SIZEOF_MSG] = "";
+        connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
 
-		}
-	} while(localisation_ < 100);
+        if (connection == 0)
+        {
+            perror("Ending connection\n");
+            continue;
+        }
+
+        if ((strcmp(response,"START"))==-1)
+        {
+            printf("%s\n",response);
+            is_moving = true;
+        }
+        if ((strcmp(response,"STOP"))==-1)
+        {
+            printf("%s\n",response);
+            is_moving = false;
+        }
+
+        if(is_moving)
+        {
+            sleep(atoi(argv[4]));
+            sprintf(localisation, "%d", localisation_);
+            char temp[9] = "";
+            strcat(temp,id);
+            strcat(temp,separator);
+            strcat(temp,localisation);
+            if (send(socket_desc, temp, strlen(temp), 0)<0)
+                printf("Could not send data to RBC, dropping signal\n");
+            else{
+                printf("Data sent : %s\n",temp);
+            }
+            localisation_++;
+            return 1;
+
+        }
+	} while(true);
 	return 1;
 }
