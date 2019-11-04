@@ -51,16 +51,6 @@ int main(int argc , char *argv[])
             continue;
         }
 
-        if ((strcmp(response,"START"))==-1)
-        {
-            printf("%s\n",response);
-            is_moving = true;
-        }
-        if ((strcmp(response,"STOP"))==-1)
-        {
-            printf("%s\n",response);
-            is_moving = false;
-        }
         while (true){
             sleep(5);
         }
