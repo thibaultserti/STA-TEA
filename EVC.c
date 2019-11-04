@@ -6,8 +6,6 @@
 #include<string.h>
 #include "EVC.h"
 
-char *separator = ":";
-
 int SocketCreate(void)
 {
 	int new_socket;
@@ -23,7 +21,6 @@ void SocketConnect(int socket_desc, char* adresse_hote)
 	server.sin_addr.s_addr = inet_addr(adresse_hote);
 	server.sin_family = AF_INET;
 	server.sin_port = htons(PORT_NUMBER);
-
 	//Vérification de la connection
 	while (true)
 	{
@@ -36,6 +33,7 @@ void SocketConnect(int socket_desc, char* adresse_hote)
 	    if(return_value == 0)
         {
             break;
+
         }
 	}
 }
@@ -62,10 +60,12 @@ int SocketReceive(int socket, char* response, short rcvSize)
 
 int main(int argc , char *argv[])
 {
+    id = argv[2];
+    localisation = argv[3];
     do {
 	    int socket_desc;
 	    int connection;
-	    is_moving = true;
+        char data[12];
 
 	    printf("Trying to connect to RBC\n");
 
@@ -76,7 +76,7 @@ int main(int argc , char *argv[])
 	    {
 		    perror("Could not create socket\n");
 		    //on reprend la boucle while
-		    continue;
+		    //continue;
 	    }
 
 	    //Connection au server
@@ -84,18 +84,19 @@ int main(int argc , char *argv[])
 	
 	    printf("Connected\n");
 
-	    char data[11];
-	    char* id = argv[2];
-	    char* localisation = argv[3];
+	    sprintf(data, "%d", ADD_TRAIN);
+	    sprintf(data, "%d", REQUEST);
 	    strcat(data,id);
-	    strcat(data,separator);
 	    strcat(data,localisation);
-
-	    int localisation_ = atoi(localisation);
+        if (send(socket_desc, data, strlen(data), 0)<0)
+            perror("Writing stream message");
+        else{
+            printf("Sending the following request : %s\n",data);
+        }
 
         char response[SIZEOF_MSG] = "";
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
-
+        //Vérification de la connexion
         if (connection == 0)
         {
             perror("Ending connection\n");
@@ -112,23 +113,8 @@ int main(int argc , char *argv[])
             printf("%s\n",response);
             is_moving = false;
         }
-
-        if(is_moving)
-        {
-            sleep(atoi(argv[4]));
-            sprintf(localisation, "%d", localisation_);
-            char temp[9] = "";
-            strcat(temp,id);
-            strcat(temp,separator);
-            strcat(temp,localisation);
-            if (send(socket_desc, temp, strlen(temp), 0)<0)
-                printf("Could not send data to RBC, dropping signal\n");
-            else{
-                printf("Data sent : %s\n",temp);
-            }
-            localisation_++;
-            return 1;
-
+        while (true){
+            sleep(5);
         }
 	} while(true);
 	return 1;
