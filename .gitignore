@@ -2,3 +2,7 @@
 *.pdf
 EVC
 RBC
+.idea/
+compile_commands.json
+CMakeLists.txt
+cmake-build-debug/
