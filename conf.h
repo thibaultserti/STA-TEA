@@ -20,4 +20,32 @@ typedef int bool;
 #define LOCATION_REPORT 3
 #define MOVEMENT 4
 
+char *str_sub (const char *s, unsigned int start, unsigned int end) {
+    char *new_s = NULL;
+    if (s != NULL && start < end)
+    {
+        new_s = malloc(sizeof(*new_s) * (end - start + 2));
+        if (new_s != NULL)
+        {
+            int i;
+            for (i = start; i <= end; i++)
+            {
+                new_s[i - start] = s[i];
+            }
+            new_s[i - start] = '\0';
+        }
+        else
+        {
+            fprintf(stderr, "Memoire insuffisante\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else{
+        printf("Erreur d'arguments\n");
+        exit(EXIT_FAILURE);
+    }
+    return new_s;
+}
+
+
 #endif
