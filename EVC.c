@@ -32,8 +32,8 @@ int main(int argc , char *argv[])
 	
 	    printf("Connected\n");
 
+        sprintf(data, "%d", REQUEST);
 	    sprintf(data, "%d", ADD_TRAIN);
-	    sprintf(data, "%d", REQUEST);
 	    strcat(data,id);
 	    strcat(data,localisation);
         if (send(socket_desc, data, strlen(data), 0)<0)
