@@ -6,57 +6,97 @@
 #include<string.h>
 #include "EVC.h"
 
-int main(int argc , char *argv[])
-{
+int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
     do {
-	    int socket_desc;
-	    int connection;
+        int socket_desc;
+        int connection;
+        int rval;
+        int reqack;
+        int entier;
         char data[12];
 
-	    printf("Trying to connect to RBC\n");
+        printf("Trying to connect to RBC\n");
 
-	    //Création de la socket
-	    socket_desc = SocketCreate();
-	    //Vérification de la création
-	    if (socket_desc == -1)
-	    {
-		    perror("Could not create socket\n");
-		    //on reprend la boucle while
-		    //continue;
-	    }
+        //Création de la socket
+        socket_desc = SocketCreate();
+        //Vérification de la création
+        if (socket_desc == -1) {
+            perror("Could not create socket\n");
+            //on reprend la boucle while
+            //continue;
+        }
 
-	    //Connection au server
-	    SocketConnect(socket_desc, argv[1]);
-	
-	    printf("Connected\n");
+        //Connection au server
+        SocketConnect(socket_desc, argv[1]);
+
+        printf("Connected\n");
 
         sprintf(data, "%d", REQUEST);
-	    sprintf(data, "%d", ADD_TRAIN);
-	    strcat(data,id);
-	    strcat(data,localisation);
-        if (send(socket_desc, data, strlen(data), 0)<0)
+        sprintf(data, "%d", ADD_TRAIN);
+        strcat(data, id);
+        strcat(data, localisation);
+        if (send(socket_desc, data, strlen(data), 0) < 0)
             perror("Writing stream message");
-        else{
-            printf("Sending the following message : %s\n",data);
+        else {
+            printf("Sending the following message : %s\n", data);
         }
 
         char response[SIZEOF_MSG] = "";
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
+        /* Listening to RBC */
+        do {
+            memset(response, 0, sizeof(response));
+            rval = read(socket_desc, response, SIZEOF_MSG);
+            if (rval < 0) {
+                perror("Reading stream message");
+            } else if (rval == 0) {
+                perror("Ending connection\n");
+                break;
+            } else {
+                reqack = str_sub(data, 0, 2);
+                entier = str_sub(entier, 2, 3);
+                switch (reqack) {
+                    case REQUEST :
+                        switch (entier) {
+                            case LOCATION_REPORT : //Necessary ?
+                            /* Does the RBC needs it or EVC ? */
+                                ;
+                        }
+                        break;
+                    case RESPONSE :
+                        switch (entier) {
+                            case LOCATION_REPORT :
+                                ;
+                        }
+                        break;
+                    case ERROR :
+                        switch (entier) {
+                            case ADD_TRAIN :
+                                ;
+                            case DELETE_TRAIN :
+                                ;
+                            case LOCATION_REPORT :
+                                ;
+                            case MOVEMENT:
+                                ;
+                        }
+                        break;
+                }
+            }
+        }while (true);
+
         //Vérification de la connexion
-        if (connection == 0)
-        {
+        if (connection == 0) {
             perror("Ending connection\n");
             continue;
         }
 
-        while (true){
-            sleep(5);
-        }
-	} while(true);
-	return 1;
-}
+        } while (true);
+        return 1;
+    }
+
 
 int SocketCreate(void)
 {

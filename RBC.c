@@ -61,25 +61,13 @@ void* connection_handler(void *sock)
                     break;
                 case RESPONSE :
                     switch (entier){
-                        case ADD_TRAIN :
-                            ;
-                        case DELETE_TRAIN :
-                            ;
                         case LOCATION_REPORT :
-                            ;
-                        case MOVEMENT :
                             ;
                     }
                     break;
                 case ERROR :
                     switch (entier){
-                        case ADD_TRAIN :
-                            ;
-                        case DELETE_TRAIN :
-                            ;
                         case LOCATION_REPORT :
-                            ;
-                        case MOVEMENT :
                             ;
                     }
                     break;
