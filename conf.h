@@ -11,8 +11,9 @@ typedef int bool;
 #define SIZEOF_MSG 1024
 
 //code reqack
-#define REQUEST 0
-#define RESPONSE 1
+#define REQUEST 10
+#define RESPONSE 20
+#define ERROR 50
 
 //code message : entier
 #define ADD_TRAIN 1
