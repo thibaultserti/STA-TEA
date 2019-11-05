@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
 #include "RBC.h"
 
 Trains trains;
@@ -21,11 +22,70 @@ void* connection_handler(void *sock)
     int datasock = *(int*)sock;
     int rval;
     int wval;
-    char data[1024];
+    int reqack;
+    int entier;
+    char data[SIZEOF_MSG];
+    char *id = NULL, *local = NULL;
     char *signal = "START";
+
     if (datasock == -1) {
         perror("Accept");
     } else do {
+        /* Receive first request from EVC */
+        memset(data, 0, sizeof(data));
+        rval = read(datasock, data, SIZEOF_MSG);
+        if (rval<0)
+        {
+            perror("Reading stream message");
+        }
+        else if (rval == 0)
+        {
+            perror("Ending connection\n");
+        }
+        else
+        {
+            reqack = str_sub(data, 0, 2);
+            entier = str_sub(entier, 2, 3);
+            switch(reqack){
+                case REQUEST :
+                    switch (entier){
+                        case ADD_TRAIN :
+                            ;
+                        case DELETE_TRAIN :
+                            ;
+                        case LOCATION_REPORT :
+                            ;
+                        case MOVEMENT :
+                            ;
+                    }
+                    break;
+                case RESPONSE :
+                    switch (entier){
+                        case ADD_TRAIN :
+                            ;
+                        case DELETE_TRAIN :
+                            ;
+                        case LOCATION_REPORT :
+                            ;
+                        case MOVEMENT :
+                            ;
+                    }
+                    break;
+                case ERROR :
+                    switch (entier){
+                        case ADD_TRAIN :
+                            ;
+                        case DELETE_TRAIN :
+                            ;
+                        case LOCATION_REPORT :
+                            ;
+                        case MOVEMENT :
+                            ;
+                    }
+                    break;
+            }
+        }
+
         /* Authorisation to move forward */
         wval = send(datasock, signal, strlen(signal), 0);
         if(wval < 0)
@@ -49,7 +109,7 @@ void* connection_handler(void *sock)
         }
 
         memset(data, 0, sizeof(data));
-        if ((rval  = read(datasock, data,  1024)) < 0)
+        if ((rval  = read(datasock, data,  SIZEOF_MSG)) < 0)
         {
             perror("Reading stream message");
         }
