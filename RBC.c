@@ -46,32 +46,49 @@ void* connection_handler(void *sock)
         {
             reqack = str_sub(data, 0, 2);
             entier = str_sub(entier, 2, 3);
-            switch(reqack){
-                case REQUEST :
-                    switch (entier){
-                        case ADD_TRAIN :
+            switch (entier) {
+                case ADD_TRAIN :
+                    switch (reqack) {
+                        case REQUEST :
                             ;
-                        case DELETE_TRAIN :
-                            ;
-                        case LOCATION_REPORT :
-                            ;
-                        case MOVEMENT :
+                        case ERROR :
                             ;
                     }
                     break;
-                case RESPONSE :
-                    switch (entier){
-                        case LOCATION_REPORT :
+
+                case LOCATION_REPORT :
+                    switch (reqack) {
+                        case REQUEST : //Necessary ?
+                            /* Does the RBC needs it or EVC ? */
+                            ;
+                        case RESPONSE :
+                            ;
+                        case ERROR :
                             ;
                     }
                     break;
-                case ERROR :
-                    switch (entier){
-                        case LOCATION_REPORT :
+
+                case DELETE_TRAIN :
+                    switch (reqack){
+                        case REQUEST :
+                            ;
+                        case RESPONSE :
+                            ;
+                        case ERROR :
+                            ;
+                    }
+                    break;
+
+                case MOVEMENT :
+                    switch (reqack){
+                        case REQUEST :
+                            ;
+                        case ERROR :
                             ;
                     }
                     break;
             }
+
         }
 
         /* Authorisation to move forward */

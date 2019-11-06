@@ -57,29 +57,45 @@ int main(int argc , char *argv[]) {
             } else {
                 reqack = str_sub(data, 0, 2);
                 entier = str_sub(entier, 2, 3);
-                switch (reqack) {
-                    case REQUEST :
-                        switch (entier) {
-                            case LOCATION_REPORT : //Necessary ?
+                switch (entier) {
+                    case ADD_TRAIN :
+                        switch (reqack) {
+                            case RESPONSE :
+                                ;
+                            case ERROR :
+                                ;
+                        }
+                        break;
+
+                    case LOCATION_REPORT :
+                        switch (reqack) {
+                            case REQUEST : //Necessary ?
                             /* Does the RBC needs it or EVC ? */
                                 ;
-                        }
-                        break;
-                    case RESPONSE :
-                        switch (entier) {
-                            case LOCATION_REPORT :
+                            case RESPONSE :
+                                ;
+                            case ERROR :
                                 ;
                         }
                         break;
-                    case ERROR :
-                        switch (entier) {
-                            case ADD_TRAIN :
+
+                    case DELETE_TRAIN :
+                        switch (reqack){
+                            case REQUEST :
                                 ;
-                            case DELETE_TRAIN :
+                            case RESPONSE :
                                 ;
-                            case LOCATION_REPORT :
+                            case ERROR :
                                 ;
-                            case MOVEMENT:
+
+                        }
+                        break;
+
+                    case MOVEMENT :
+                        switch (reqack){
+                            case RESPONSE :
+                                ;
+                            case ERROR :
                                 ;
                         }
                         break;
