@@ -201,10 +201,10 @@ bool add_to_rbc(Train *t)
     for (int i = 0; i < (trains.nb_trains); i++){
         if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
             //perror("The train has not been added because it was already registered.\n");
-            return false;
+            return true;
         }
     }
-    // Then if the numebr of trains is less than 100, we add the new train to the structure
+    // Then if the number of trains is less than 100, we add the new train to the structure
     if ((trains.nb_trains) < 100){
         // We add the train at the right place (trains.trains is sorted by growing localisation)
         int j = trains.nb_trains;
