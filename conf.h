@@ -21,6 +21,8 @@ typedef int bool;
 #define LOCATION_REPORT 3
 #define MOVEMENT 4
 
+#define SEPARATOR ":"
+
 char *str_sub (const char *s, unsigned int start, unsigned int end) {
     char *new_s = NULL;
     if (s != NULL && start < end)

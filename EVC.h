@@ -12,4 +12,6 @@ int SocketCreate(void);
 void SocketConnect(int socket_desc, char* adresse_hote);
 int SocketReceive(int socket, char* response, short rcvSize);
 
+char* getSpeed(void);
+void changeSpeed(void);
  #endif

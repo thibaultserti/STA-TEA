@@ -23,8 +23,10 @@ void* connection_handler(void *sock)
     int wval;
     int reqack;
     int entier;
-    char data[SIZEOF_MSG];
+    char data[SIZEOF_MSG], response[SIZEOF_MSG];
+    char *reqack_ = NULL, *entier_ = NULL;
     char *id = NULL, *local = NULL;
+    Train *t = malloc(sizeof(Train));
     char *signal = "START";
 
     if (datasock == -1) {
@@ -43,33 +45,122 @@ void* connection_handler(void *sock)
             }
             else
             {
-                //reqack = str_sub(data, 0, 2);
-                //entier = str_sub(entier, 2, 3);
-                switch(reqack){
-                    case REQUEST :
-                        switch (entier){
-                            case ADD_TRAIN :
+                reqack_ = str_sub(data, 0, 1);
+                entier_ = str_sub(data, 2, 3);
+                reqack = atoi(reqack_);
+                entier = atoi(entier_);
+                printf("on a reçu le message : %s\n", data);
+                printf("reqack : %d\n", reqack);
+                printf("entier : %d\n", entier);
+                strtok(data,SEPARATOR);
+                id = strtok(NULL,SEPARATOR);
+                local = strtok(NULL,SEPARATOR);
+                printf("id : %s\n", id);
+                printf("local : %s\n", local);
+                switch(entier){
+                    case ADD_TRAIN :
+                        switch (reqack){
+                            case REQUEST :
                                 ;
-                            case DELETE_TRAIN :
-                                ;
-                            case LOCATION_REPORT :
-                                ;
-                            case MOVEMENT :
-                                ;
+                                short signed local_ = atoi(local);
+
+                                for (int i = 0; i < MAX_LENGTH_ID; i++) {
+                                    t -> id[i] = id[i];
+                                }
+                                t -> local = local_;
+                                t -> eoa = 100;
+                                bool is_added = add_to_rbc(t);
+
+                                if (!is_added){
+                                    update_local_rbc(t -> id, t -> local);
+                                }
+                                else {
+                                    // TODO make function of this
+                                    sprintf(response, "%d", ERROR);
+                                    char temp[2] = "";
+                                    sprintf(temp, "%d", ADD_TRAIN);
+                                    strcat(response, temp);
+                                    strcat(response, SEPARATOR);
+                                    strcat(response, id);
+                                    strcat(response, SEPARATOR);
+                                    strcat(response, local);
+
+                                    wval = send(datasock, response, strlen(response), 0);
+                                    if(wval < 0)
+                                    {
+                                        perror("Writing stream message");
+                                    }
+                                    else{
+                                        puts("Data sent :");
+                                        puts(response);
+                                    }
+                                }
+
+                                update_eoa_rbc();
+                                /* Go through array of trains to get the right number of train*/
+                                for(int i =0; i<trains.nb_trains; i++)
+                                {
+                                    if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
+                                        num_train = i;
+                                        break;
+                                    }
+                                }
+
+                                /* Send validation request to EVC */
+                                sprintf(response, "%d", RESPONSE);
+                                char temp[3] = "";
+                                sprintf(temp, "%d", ADD_TRAIN);
+                                strcat(data, temp);
+                                strcat(data, SEPARATOR);
+                                strcat(data, id);
+                                strcat(data, SEPARATOR);
+                                strcat(data, local);
+
+                                wval = send(datasock, response, strlen(response), 0);
+                                if(wval < 0)
+                                {
+                                    perror("Writing stream message");
+                                }
+                                else{
+                                    puts("Data sent :");
+                                    puts(response);
+                                }
+                                break;
+                            case ERROR :
+                                break;
                         }
                         break;
-                    case RESPONSE :
-                        switch (entier){
-                            case LOCATION_REPORT :
-                                ;
+
+                    case LOCATION_REPORT :
+                        switch (reqack){
+                            case REQUEST :
+                                break;
+                            case RESPONSE :
+                                break;
                         }
                         break;
-                    case ERROR :
-                        switch (entier){
-                            case LOCATION_REPORT :
-                                ;
+
+                    case MOVEMENT :
+                        switch (reqack){
+                            case REQUEST :
+                                break;
+                            case ERROR :
+                                break;
                         }
                         break;
+
+                    //This use case is not a part of the project
+                    /*case DELETE_TRAIN :
+                        switch (reqack){
+                            case REQUEST :
+                                break;
+                            case RESPONSE :
+                                break;
+                            case ERROR :
+                                break;
+                        }
+                        break;*/
+
                 }
             }
 
