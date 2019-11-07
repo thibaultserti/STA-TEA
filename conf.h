@@ -77,4 +77,16 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
         return true;
     }
 }
+
+void parse_data(char data[], int* reqack, int* entier, char** id, char** local) {
+    char *reqack_ = NULL, *entier_ = NULL;
+    reqack_ = str_sub(data, 0, 1);
+    entier_ = str_sub(data, 2, 3);
+    *reqack = atoi(reqack_);
+    *entier = atoi(entier_);
+    strtok(data, SEPARATOR);
+    *id = strtok(NULL, SEPARATOR);
+    *local = strtok(NULL, SEPARATOR);
+}
+
 #endif

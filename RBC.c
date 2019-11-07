@@ -24,8 +24,7 @@ void* connection_handler(void *sock)
     int reqack;
     int entier;
     char data[SIZEOF_MSG];
-    char *reqack_ = NULL, *entier_ = NULL;
-    char *id = NULL, *local = NULL;
+    char *id = NULL, *localisation = NULL;
     Train *t = malloc(sizeof(Train));
     char *signal = "START";
 
@@ -45,29 +44,18 @@ void* connection_handler(void *sock)
             }
             else
             {
-                reqack_ = str_sub(data, 0, 1);
-                entier_ = str_sub(data, 2, 3);
-                reqack = atoi(reqack_);
-                entier = atoi(entier_);
-                printf("on a reçu le message : %s\n", data);
-                printf("reqack : %d\n", reqack);
-                printf("entier : %d\n", entier);
-                strtok(data,SEPARATOR);
-                id = strtok(NULL,SEPARATOR);
-                local = strtok(NULL,SEPARATOR);
-                printf("id : %s\n", id);
-                printf("local : %s\n", local);
+                parse_data(data, &reqack, &entier, &id, &localisation);
                 switch(entier){
                     case ADD_TRAIN :
                         switch (reqack){
                             case REQUEST :
                                 ;
-                                short signed local_ = atoi(local);
+                                short signed localisation_ = atoi(localisation);
 
                                 for (int i = 0; i < MAX_LENGTH_ID; i++) {
                                     t -> id[i] = id[i];
                                 }
-                                t -> local = local_;
+                                t -> local = localisation_;
                                 t -> eoa = 100;
                                 bool is_added = add_to_rbc(t);
 
@@ -75,7 +63,7 @@ void* connection_handler(void *sock)
                                     update_local_rbc(t -> id, t -> local);
                                 }
                                 else {
-                                    send_data(datasock, ERROR, ADD_TRAIN, id, local, NULL);
+                                    send_data(datasock, ERROR, ADD_TRAIN, id, localisation, NULL);
                                 }
 
                                 update_eoa_rbc();
@@ -89,7 +77,7 @@ void* connection_handler(void *sock)
                                 }
 
                                 /* Send validation request to EVC */
-                                send_data(datasock, RESPONSE, ADD_TRAIN, id, local, NULL);
+                                send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, NULL);
 
                                 break;
                             case ERROR :

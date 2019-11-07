@@ -15,7 +15,6 @@ int main(int argc , char *argv[]) {
         int rval;
         int reqack;
         int entier;
-        char *reqack_ = NULL, *entier_ = NULL;
 
         printf("Trying to connect to RBC\n");
 
@@ -25,7 +24,7 @@ int main(int argc , char *argv[]) {
         if (socket_desc == -1) {
             perror("Could not create socket\n");
             //on reprend la boucle while
-            //continue;
+            continue;
         }
 
         //Connection au server
@@ -49,10 +48,7 @@ int main(int argc , char *argv[]) {
                 break;
             } else {
 
-                reqack_ = str_sub(response, 0, 2);
-                entier_ = str_sub(response, 2, 3);
-                reqack = atoi(reqack_);
-                entier = atoi(entier_);
+                parse_data(response, &reqack, &entier, &id, &localisation);
 
                 switch (entier) {
                     case ADD_TRAIN :
