@@ -11,7 +11,6 @@
 #include "RBC.h"
 
 Trains trains;
-const char* separator = ":";
 
 /*
  * This will handle connection for each client
@@ -31,137 +30,76 @@ void* connection_handler(void *sock)
     if (datasock == -1) {
         perror("Accept");
     } else do {
-        /* Receive first request from EVC */
-        memset(data, 0, sizeof(data));
-        rval = read(datasock, data, SIZEOF_MSG);
-        if (rval<0)
-        {
-            perror("Reading stream message");
-        }
-        else if (rval == 0)
-        {
-            perror("Ending connection\n");
-        }
-        else
-        {
-            reqack = str_sub(data, 0, 2);
-            entier = str_sub(entier, 2, 3);
-            switch (entier) {
-                case ADD_TRAIN :
-                    switch (reqack) {
-                        case REQUEST :
-                            ;
-                        case ERROR :
-                            ;
-                    }
-                    break;
-
-                case LOCATION_REPORT :
-                    switch (reqack) {
-                        case REQUEST : //Necessary ?
-                            /* Does the RBC needs it or EVC ? */
-                            ;
-                        case RESPONSE :
-                            ;
-                        case ERROR :
-                            ;
-                    }
-                    break;
-
-                case DELETE_TRAIN :
-                    switch (reqack){
-                        case REQUEST :
-                            ;
-                        case RESPONSE :
-                            ;
-                        case ERROR :
-                            ;
-                    }
-                    break;
-
-                case MOVEMENT :
-                    switch (reqack){
-                        case REQUEST :
-                            ;
-                        case ERROR :
-                            ;
-                    }
-                    break;
-            }
-
-        }
-
-        /* Authorisation to move forward */
-        wval = send(datasock, signal, strlen(signal), 0);
-        if(wval < 0)
-        {
-            perror("Writing stream message");
-        }
-        else{
-            puts("Data sent :");
-            puts(signal);
-        }
-
-        /* If the train stopped, wait until he has authorisation */
-        if(strcmp(signal,"STOP")==0)
-        {
-            while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
-                sleep(1);
-            }
-            printf("Train %s starts again !\n", trains.trains[num_train] -> id);
-            signal = "START";
-            continue; // /!\ fixed #11
-        }
-
-        memset(data, 0, sizeof(data));
-        if ((rval  = read(datasock, data,  SIZEOF_MSG)) < 0)
-        {
-            perror("Reading stream message");
-        }
-        else if (rval == 0)
-            printf("Ending connection\n");
-        else {
-            //printf("-->%s\n", data);
-            char *id, *local = NULL;
-            id = strtok(data,separator);
-            local = strtok(NULL,separator);
-            short signed local_ = atoi(local);
-            
-            Train *t = malloc(sizeof(Train));
-            for (int i = 0; i < MAX_LENGTH_ID; i++) {
-                t -> id[i] = id[i];
-            }
-            t -> local = local_;
-            t -> eoa = 100;
-            bool is_added = add_to_rbc(t);
-            if (!is_added){
-                update_local_rbc(t -> id, t -> local);
-            }
-            if (t -> local == 100)
+            /* Receive first request from EVC */
+            memset(data, 0, sizeof(data));
+            rval = read(datasock, data, SIZEOF_MSG);
+            if (rval<0)
             {
-                remove_from_rbc(t);
+                perror("Reading stream message");
             }
-            update_eoa_rbc();
-
-            /* Go through array of trains to get the right number of train*/
-            for(int i =0; i<trains.nb_trains; i++)
+            else if (rval == 0)
             {
-                if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                    num_train = i;
-                    break;
+                perror("Ending connection\n");
+            }
+            else
+            {
+                //reqack = str_sub(data, 0, 2);
+                //entier = str_sub(entier, 2, 3);
+                switch(reqack){
+                    case REQUEST :
+                        switch (entier){
+                            case ADD_TRAIN :
+                                ;
+                            case DELETE_TRAIN :
+                                ;
+                            case LOCATION_REPORT :
+                                ;
+                            case MOVEMENT :
+                                ;
+                        }
+                        break;
+                    case RESPONSE :
+                        switch (entier){
+                            case LOCATION_REPORT :
+                                ;
+                        }
+                        break;
+                    case ERROR :
+                        switch (entier){
+                            case LOCATION_REPORT :
+                                ;
+                        }
+                        break;
                 }
             }
-            if (trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local)
+
+            /* Authorisation to move forward */
+            wval = send(datasock, signal, strlen(signal), 0);
+            if(wval < 0)
             {
-                printf("Train %s stops !\n", trains.trains[num_train] -> id);
-                signal = "STOP";
+                perror("Writing stream message");
             }
-            
-        }
-    } while (rval > 0);
+            else{
+                puts("Data sent :");
+                puts(signal);
+            }
+
+            /* If the train stopped, wait until he has authorisation */
+            if(strcmp(signal,"STOP")==0)
+            {
+                while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
+                    sleep(1);
+                }
+                printf("Train %s starts again !\n", trains.trains[num_train] -> id);
+                signal = "START";
+                continue; // /!\ fixed #11
+            }
+
+
+        } while (rval > 0);
     puts("Connection ended");
     close(datasock);
-	free(sock);	
+    free(sock);
     return 0;
 }
 
@@ -250,7 +188,7 @@ void* print_trains(void* arg){
         for (int i = 0; i < (trains.nb_trains); i++) {
             printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
         }
-        sleep(1);    
+        sleep(1);
     }
 }
 
@@ -294,7 +232,7 @@ int main()
         exit(1);
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
-    
+
     pthread_t thread;
     pthread_create(&thread, NULL, print_trains, NULL);
 
