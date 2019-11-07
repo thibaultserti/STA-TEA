@@ -33,8 +33,9 @@ int main(int argc , char *argv[]) {
 
         printf("Connected\n");
 
-        send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, NULL);
-
+        if (!(send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, NULL))){
+            continue;
+        }
         char response[SIZEOF_MSG] = "";
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
         /* Listening to RBC */

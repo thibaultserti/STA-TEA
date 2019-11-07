@@ -7,6 +7,7 @@
 bool is_moving = false;
 char* id;
 char* localisation;
+char* speed;
 
 int SocketCreate(void);
 void SocketConnect(int socket_desc, char* adresse_hote);

@@ -23,6 +23,9 @@ typedef int bool;
 
 #define SEPARATOR ":"
 
+bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
+char *str_sub (const char *s, unsigned int start, unsigned int end);
+
 char *str_sub (const char *s, unsigned int start, unsigned int end) {
     char *new_s = NULL;
     if (s != NULL && start < end)
@@ -50,5 +53,28 @@ char *str_sub (const char *s, unsigned int start, unsigned int end) {
     return new_s;
 }
 
+bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed){
+    char data[SIZEOF_MSG] = "";
+    sprintf(data, "%d", reqack);
+    char temp[2] = "";
+    sprintf(temp, "%d", entier);
+    strcat(data, temp);
+    strcat(data, SEPARATOR);
+    strcat(data, id);
+    strcat(data, SEPARATOR);
+    strcat(data, local);
+    if(speed != NULL) {
+        strcat(data, SEPARATOR);
+        strcat(data, speed);
+    }
 
+    if (send(socket, data, strlen(data), 0) < 0) {
+        perror("Writing stream message");
+        return false;
+    }
+    else {
+        printf("Sending the following message : %s\n", data);
+        return true;
+    }
+}
 #endif

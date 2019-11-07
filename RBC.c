@@ -23,7 +23,7 @@ void* connection_handler(void *sock)
     int wval;
     int reqack;
     int entier;
-    char data[SIZEOF_MSG], response[SIZEOF_MSG];
+    char data[SIZEOF_MSG];
     char *reqack_ = NULL, *entier_ = NULL;
     char *id = NULL, *local = NULL;
     Train *t = malloc(sizeof(Train));
@@ -71,29 +71,11 @@ void* connection_handler(void *sock)
                                 t -> eoa = 100;
                                 bool is_added = add_to_rbc(t);
 
-                                if (!is_added){
+                                if (is_added){
                                     update_local_rbc(t -> id, t -> local);
                                 }
                                 else {
-                                    // TODO make function of this
-                                    sprintf(response, "%d", ERROR);
-                                    char temp[2] = "";
-                                    sprintf(temp, "%d", ADD_TRAIN);
-                                    strcat(response, temp);
-                                    strcat(response, SEPARATOR);
-                                    strcat(response, id);
-                                    strcat(response, SEPARATOR);
-                                    strcat(response, local);
-
-                                    wval = send(datasock, response, strlen(response), 0);
-                                    if(wval < 0)
-                                    {
-                                        perror("Writing stream message");
-                                    }
-                                    else{
-                                        puts("Data sent :");
-                                        puts(response);
-                                    }
+                                    send_data(datasock, ERROR, ADD_TRAIN, id, local, NULL);
                                 }
 
                                 update_eoa_rbc();
@@ -107,24 +89,8 @@ void* connection_handler(void *sock)
                                 }
 
                                 /* Send validation request to EVC */
-                                sprintf(response, "%d", RESPONSE);
-                                char temp[3] = "";
-                                sprintf(temp, "%d", ADD_TRAIN);
-                                strcat(data, temp);
-                                strcat(data, SEPARATOR);
-                                strcat(data, id);
-                                strcat(data, SEPARATOR);
-                                strcat(data, local);
+                                send_data(datasock, RESPONSE, ADD_TRAIN, id, local, NULL);
 
-                                wval = send(datasock, response, strlen(response), 0);
-                                if(wval < 0)
-                                {
-                                    perror("Writing stream message");
-                                }
-                                else{
-                                    puts("Data sent :");
-                                    puts(response);
-                                }
                                 break;
                             case ERROR :
                                 break;
