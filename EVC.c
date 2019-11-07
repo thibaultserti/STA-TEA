@@ -6,6 +6,8 @@
 #include<string.h>
 #include "EVC.h"
 
+void start();
+
 int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
@@ -15,7 +17,7 @@ int main(int argc , char *argv[]) {
         int rval;
         int reqack;
         int entier;
-        char data[12];
+        char data[SIZEOF_MSG],*reqack_ = NULL, *entier_ = NULL;
 
         printf("Trying to connect to RBC\n");
 
@@ -34,8 +36,12 @@ int main(int argc , char *argv[]) {
         printf("Connected\n");
 
         sprintf(data, "%d", REQUEST);
-        sprintf(data, "%d", ADD_TRAIN);
+        char temp[2] = "";
+        sprintf(temp, "%d", ADD_TRAIN);
+        strcat(data, temp);
+        strcat(data, SEPARATOR);
         strcat(data, id);
+        strcat(data, SEPARATOR);
         strcat(data, localisation);
         if (send(socket_desc, data, strlen(data), 0) < 0)
             perror("Writing stream message");
@@ -55,15 +61,21 @@ int main(int argc , char *argv[]) {
                 perror("Ending connection\n");
                 break;
             } else {
-                reqack = str_sub(data, 0, 2);
-                entier = str_sub(entier, 2, 3);
+
+                reqack_ = str_sub(response, 0, 2);
+                entier_ = str_sub(response, 2, 3);
+                reqack = atoi(reqack_);
+                entier = atoi(entier_);
+
                 switch (entier) {
                     case ADD_TRAIN :
                         switch (reqack) {
                             case RESPONSE :
-                                ;
+                                printf("Train added\n");
+                                break;
                             case ERROR :
-                                ;
+                                perror("Too many trains !");
+                                exit(0);
                         }
                         break;
 
@@ -71,22 +83,22 @@ int main(int argc , char *argv[]) {
                         switch (reqack) {
                             case REQUEST : //Necessary ?
                             /* Does the RBC needs it or EVC ? */
-                                ;
+                                break;
                             case RESPONSE :
-                                ;
+                                break;
                             case ERROR :
-                                ;
+                                break;
                         }
                         break;
 
                     case DELETE_TRAIN :
                         switch (reqack){
                             case REQUEST :
-                                ;
+                                break;
                             case RESPONSE :
-                                ;
+                                break;
                             case ERROR :
-                                ;
+                                break;
 
                         }
                         break;
@@ -94,9 +106,9 @@ int main(int argc , char *argv[]) {
                     case MOVEMENT :
                         switch (reqack){
                             case RESPONSE :
-                                ;
+                                break;
                             case ERROR :
-                                ;
+                                break;
                         }
                         break;
                 }
@@ -143,6 +155,7 @@ void SocketConnect(int socket_desc, char* adresse_hote)
             break;
 
         }
+        sleep(3);
     }
 }
 
@@ -164,4 +177,15 @@ int SocketReceive(int socket, char* response, short rcvSize)
         }
     }
     return 1;
+}
+
+char* getSpeed(void){
+    int speed = 1;
+    char* speed_ = NULL;
+    sprintf(speed_, "%d", speed);
+    return speed_;
+}
+
+void changeSpeed(void) {
+
 }
