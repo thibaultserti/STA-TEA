@@ -6,8 +6,6 @@
 #include<string.h>
 #include "EVC.h"
 
-void start();
-
 int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
@@ -17,7 +15,7 @@ int main(int argc , char *argv[]) {
         int rval;
         int reqack;
         int entier;
-        char data[SIZEOF_MSG],*reqack_ = NULL, *entier_ = NULL;
+        char *reqack_ = NULL, *entier_ = NULL;
 
         printf("Trying to connect to RBC\n");
 
@@ -35,19 +33,7 @@ int main(int argc , char *argv[]) {
 
         printf("Connected\n");
 
-        sprintf(data, "%d", REQUEST);
-        char temp[2] = "";
-        sprintf(temp, "%d", ADD_TRAIN);
-        strcat(data, temp);
-        strcat(data, SEPARATOR);
-        strcat(data, id);
-        strcat(data, SEPARATOR);
-        strcat(data, localisation);
-        if (send(socket_desc, data, strlen(data), 0) < 0)
-            perror("Writing stream message");
-        else {
-            printf("Sending the following message : %s\n", data);
-        }
+        send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, NULL);
 
         char response[SIZEOF_MSG] = "";
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
