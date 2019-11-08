@@ -172,7 +172,7 @@ int get_localisation(void){
     return localisation;
 }
 int get_speed(void){
-    int speed = 1;
+    int speed = 0;
     return speed;
 }
 

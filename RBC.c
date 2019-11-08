@@ -120,7 +120,9 @@ void* connection_handler(void *sock)
 
                 }
             }
-            send_data(datasock, REQUEST, MOVEMENT, id, localisation, "2");
+            char* speed_requested = speed;
+            sprintf(speed_requested, "%d", speed_to_have());
+            send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
             sleep(1);
 
 
@@ -220,6 +222,10 @@ void* print_trains(void* arg){
     }
 }
 
+int speed_to_have(void){
+    int speed = 1;
+    return speed;
+}
 
 int main()
 {
