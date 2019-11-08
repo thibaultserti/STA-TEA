@@ -7,96 +7,129 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <signal.h>
 #include "RBC.h"
 
 Trains trains;
-const char* separator = ":";
 
 /*
  * This will handle connection for each client
  * */
 void* connection_handler(void *sock)
 {
-    int num_train;
     int datasock = *(int*)sock;
     int rval;
-    int wval;
-    char data[1024];
-    char *signal = "START";
+    int reqack, entier;
+    char *id = NULL, *localisation = NULL, *speed = NULL;
+
+    char data[SIZEOF_MSG];
+    Train *t = malloc(sizeof(Train));
+
     if (datasock == -1) {
         perror("Accept");
     } else do {
-        /* Authorisation to move forward */
-        wval = send(datasock, signal, strlen(signal), 0);
-        if(wval < 0)
-        {
-            perror("Writing stream message");
-        }
-        else{
-            puts("Data sent :");
-            puts(signal);
-        }
-
-        /* If the train stopped, wait until he has authorisation */
-        if(strcmp(signal,"STOP")==0)
-        {
-            while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
-                sleep(1);
-            }
-            printf("Train %s starts again !\n", trains.trains[num_train] -> id);
-            signal = "START";
-            continue; // /!\ fixed #11
-        }
-
-        memset(data, 0, sizeof(data));
-        if ((rval  = read(datasock, data,  1024)) < 0)
-        {
-            perror("Reading stream message");
-        }
-        else if (rval == 0)
-            printf("Ending connection\n");
-        else {
-            //printf("-->%s\n", data);
-            char *id, *local = NULL;
-            id = strtok(data,separator);
-            local = strtok(NULL,separator);
-            short signed local_ = atoi(local);
             
-            Train *t = malloc(sizeof(Train));
-            for (int i = 0; i < MAX_LENGTH_ID; i++) {
-                t -> id[i] = id[i];
-            }
-            t -> local = local_;
-            t -> eoa = 100;
-            bool is_added = add_to_rbc(t);
-            if (!is_added){
-                update_local_rbc(t -> id, t -> local);
-            }
-            if (t -> local == 100)
+            /* Receive first request from EVC */
+            memset(data, 0, sizeof(data));
+            rval = read(datasock, data, SIZEOF_MSG);
+            if (rval<0)
             {
-                remove_from_rbc(t);
+                perror("Reading stream message");
             }
-            update_eoa_rbc();
+            else if (rval == 0)
+            {
+                perror("Ending connection\n");
+            }
+            else
+            {
+                parse_data(data, &reqack, &entier, &id, &localisation, &speed);
+                //printf("reqack = %d\n", reqack);
+                
+                switch(entier){
+                    case ADD_TRAIN :
+                        switch (reqack){
+                            case REQUEST :
+                                ;
+                                short signed localisation_ = atoi(localisation);
+                                short signed speed_ = atoi(speed);
 
-            /* Go through array of trains to get the right number of train*/
-            for(int i =0; i<trains.nb_trains; i++)
-            {
-                if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                    num_train = i;
-                    break;
+                                for (int i = 0; i < MAX_LENGTH_ID; i++) {
+                                    t -> id[i] = id[i];
+                                }
+                                t -> local = localisation_;
+                                t -> eoa = 100;
+                                t -> speed = speed_;
+                                bool is_added = add_to_rbc(t);
+
+                                if (is_added){
+                                    update_local_rbc(t -> id, t -> local);
+                                }
+                                else {
+                                    send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
+                                }
+
+                                update_eoa_rbc();
+                                /* Go through array of trains to get the right number of train*/
+                                for(int i =0; i<trains.nb_trains; i++)
+                                {
+                                    if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
+                                        //num_train = i;
+                                        break;
+                                    }
+                                }
+
+                                /* Send validation request to EVC */
+                                send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
+                                break;
+                            case ERROR :
+                                break;
+                        }
+                        break;
+
+                    case LOCATION_REPORT :
+                        switch (reqack){
+                            case REQUEST :
+                                send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
+                                break;
+                            case RESPONSE :
+                                break;
+                        }
+                        break;
+
+                    case MOVEMENT :
+                        switch (reqack){
+                            case RESPONSE :
+                                printf("The speed request has been sent\n");
+                                break;
+                            case ERROR :
+                                break;
+                        }
+                        break;
+
+                    //This use case is not a part of the project
+                    /*case DELETE_TRAIN :
+                        switch (reqack){
+                            case REQUEST :
+                                break;
+                            case RESPONSE :
+                                break;
+                            case ERROR :
+                                break;
+                        }
+                        break;*/
+
                 }
             }
-            if (trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local)
-            {
-                printf("Train %s stops !\n", trains.trains[num_train] -> id);
-                signal = "STOP";
-            }
-            
-        }
-    } while (rval > 0);
+            char* speed_requested = speed;
+            sprintf(speed_requested, "%d", speed_to_have());
+            send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
+            sleep(1);
+
+
+        } while (rval > 0);
     puts("Connection ended");
     close(datasock);
-	free(sock);	
+    free(sock);
     return 0;
 }
 
@@ -107,10 +140,10 @@ bool add_to_rbc(Train *t)
     for (int i = 0; i < (trains.nb_trains); i++){
         if (strncmp(t -> id, (trains.trains)[i] -> id, MAX_LENGTH_ID) == 0){
             //perror("The train has not been added because it was already registered.\n");
-            return false;
+            return true;
         }
     }
-    // Then if the numebr of trains is less than 100, we add the new train to the structure
+    // Then if the number of trains is less than 100, we add the new train to the structure
     if ((trains.nb_trains) < 100){
         // We add the train at the right place (trains.trains is sorted by growing localisation)
         int j = trains.nb_trains;
@@ -185,10 +218,14 @@ void* print_trains(void* arg){
         for (int i = 0; i < (trains.nb_trains); i++) {
             printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
         }
-        sleep(1);    
+        sleep(1);
     }
 }
 
+int speed_to_have(void){
+    int speed = 1;
+    return speed;
+}
 
 int main()
 {
@@ -229,7 +266,7 @@ int main()
         exit(1);
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
-    
+
     pthread_t thread;
     pthread_create(&thread, NULL, print_trains, NULL);
 
