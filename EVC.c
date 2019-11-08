@@ -43,6 +43,7 @@ int main(int argc , char *argv[]) {
             sprintf(localisation, "%d", get_localisation());
             send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
 
+            response[0] = '\0';
             memset(response, 0, sizeof(response));
             rval = read(socket_desc, response, SIZEOF_MSG);
             if (rval < 0) {
@@ -51,7 +52,7 @@ int main(int argc , char *argv[]) {
                 perror("Ending connection\n");
                 break;
             } else {
-
+                printf("Received : %s\n", response);
                 parse_data(response, &reqack, &entier, &id, &localisation, &speed);
 
                 switch (entier) {

@@ -21,7 +21,10 @@ typedef int bool;
 #define LOCATION_REPORT 3
 #define MOVEMENT 4
 
+//building the message
 #define SEPARATOR ":"
+#define EOM "$"
+#define MAX_SIZE 6
 
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
 char *str_sub (const char *s, unsigned int start, unsigned int end);
@@ -64,10 +67,9 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     strcat(data, SEPARATOR);
     strcat(data, local);
     strcat(data, SEPARATOR);
-    //printf("reqack = %d entier = %d, id = %s, local = %s\n", reqack, entier, id, local);
     strcat(data, speed);
     strcat(data, SEPARATOR);
-
+    strcat(data, EOM);
 
     if (send(socket, data, strlen(data), 0) < 0) {
         perror("Writing stream message");
@@ -79,8 +81,24 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     }
 }
 
+void parse_EOM(char data[], char* table[]) {
+    char* token;
+    int i = 0;
+
+    /* get the first test */
+    token = strtok(data, EOM);
+
+    /* walk through other tests */
+    while( token != NULL ) {
+        i++;
+        strcpy(table[i], token);
+        token = strtok(NULL, EOM);
+    }
+}
+
 void parse_data(char data[], int* reqack, int* entier, char** id, char** local, char** speed) {
     char *reqack_ = NULL, *entier_ = NULL;
+
     reqack_ = str_sub(data, 0, 1);
     entier_ = str_sub(data, 2, 3);
     *reqack = atoi(reqack_);
