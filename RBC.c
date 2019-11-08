@@ -17,20 +17,18 @@ Trains trains;
  * */
 void* connection_handler(void *sock)
 {
-    int num_train;
     int datasock = *(int*)sock;
     int rval;
-    int wval;
-    int reqack;
-    int entier;
-    char data[SIZEOF_MSG];
+    int reqack, entier;
     char *id = NULL, *localisation = NULL;
+
+    char data[SIZEOF_MSG];
     Train *t = malloc(sizeof(Train));
-    char *signal = "START";
 
     if (datasock == -1) {
         perror("Accept");
     } else do {
+            
             /* Receive first request from EVC */
             memset(data, 0, sizeof(data));
             rval = read(datasock, data, SIZEOF_MSG);
@@ -45,6 +43,8 @@ void* connection_handler(void *sock)
             else
             {
                 parse_data(data, &reqack, &entier, &id, &localisation);
+                printf("reqack = %d\n", reqack);
+                
                 switch(entier){
                     case ADD_TRAIN :
                         switch (reqack){
@@ -71,14 +71,13 @@ void* connection_handler(void *sock)
                                 for(int i =0; i<trains.nb_trains; i++)
                                 {
                                     if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                                        num_train = i;
+                                        //num_train = i;
                                         break;
                                     }
                                 }
 
                                 /* Send validation request to EVC */
                                 send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, NULL);
-
                                 break;
                             case ERROR :
                                 break;
@@ -88,6 +87,7 @@ void* connection_handler(void *sock)
                     case LOCATION_REPORT :
                         switch (reqack){
                             case REQUEST :
+                                send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, NULL);
                                 break;
                             case RESPONSE :
                                 break;
@@ -96,7 +96,8 @@ void* connection_handler(void *sock)
 
                     case MOVEMENT :
                         switch (reqack){
-                            case REQUEST :
+                            case RESPONSE :
+                                printf("The speed request has been sent\n");
                                 break;
                             case ERROR :
                                 break;
@@ -117,28 +118,8 @@ void* connection_handler(void *sock)
 
                 }
             }
-
-            /* Authorisation to move forward */
-            wval = send(datasock, signal, strlen(signal), 0);
-            if(wval < 0)
-            {
-                perror("Writing stream message");
-            }
-            else{
-                puts("Data sent :");
-                puts(signal);
-            }
-
-            /* If the train stopped, wait until he has authorisation */
-            if(strcmp(signal,"STOP")==0)
-            {
-                while(trains.trains[num_train] -> eoa <= trains.trains[num_train] -> local){
-                    sleep(1);
-                }
-                printf("Train %s starts again !\n", trains.trains[num_train] -> id);
-                signal = "START";
-                continue; // /!\ fixed #11
-            }
+            send_data(datasock, REQUEST, MOVEMENT, id, localisation, NULL);
+            sleep(1);
 
 
         } while (rval > 0);

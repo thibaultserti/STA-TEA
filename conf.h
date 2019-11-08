@@ -63,8 +63,10 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     strcat(data, id);
     strcat(data, SEPARATOR);
     strcat(data, local);
+    strcat(data, SEPARATOR);
+
+    //printf("reqack = %d entier = %d, id = %s, local = %s\n", reqack, entier, id, local);
     if(speed != NULL) {
-        strcat(data, SEPARATOR);
         strcat(data, speed);
     }
 

@@ -13,8 +13,7 @@ int main(int argc , char *argv[]) {
         int socket_desc;
         int connection;
         int rval;
-        int reqack;
-        int entier;
+        int reqack, entier;
 
         printf("Trying to connect to RBC\n");
 
@@ -39,6 +38,9 @@ int main(int argc , char *argv[]) {
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
         /* Listening to RBC */
         do {
+
+            send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, NULL);
+
             memset(response, 0, sizeof(response));
             rval = read(socket_desc, response, SIZEOF_MSG);
             if (rval < 0) {
@@ -57,24 +59,22 @@ int main(int argc , char *argv[]) {
                                 printf("Train added\n");
                                 break;
                             case ERROR :
-                                perror("Too many trains !");
+                                perror("Too many trains !\n");
                                 exit(0);
                         }
                         break;
 
                     case LOCATION_REPORT :
                         switch (reqack) {
-                            case REQUEST : //Necessary ?
-                            /* Does the RBC needs it or EVC ? */
-                                break;
                             case RESPONSE :
+                                printf("Position has been transmitted\n");
                                 break;
                             case ERROR :
                                 break;
                         }
                         break;
-
-                    case DELETE_TRAIN :
+                    //This use case is not a part of the project
+                    /*case DELETE_TRAIN :
                         switch (reqack){
                             case REQUEST :
                                 break;
@@ -84,11 +84,12 @@ int main(int argc , char *argv[]) {
                                 break;
 
                         }
-                        break;
+                        break;*/
 
                     case MOVEMENT :
                         switch (reqack){
-                            case RESPONSE :
+                            case REQUEST :
+                                send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, NULL);
                                 break;
                             case ERROR :
                                 break;
@@ -96,6 +97,7 @@ int main(int argc , char *argv[]) {
                         break;
                 }
             }
+        
         }while (true);
 
         //Vérification de la connexion
@@ -104,9 +106,9 @@ int main(int argc , char *argv[]) {
             continue;
         }
 
-        } while (true);
-        return 1;
-    }
+    } while (true);
+    return 1;
+}
 
 
 int SocketCreate(void)
