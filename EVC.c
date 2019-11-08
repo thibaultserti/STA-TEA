@@ -9,6 +9,7 @@
 int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
+    speed = argv[4];
     do {
         int socket_desc;
         int connection;
@@ -31,15 +32,16 @@ int main(int argc , char *argv[]) {
 
         printf("Connected\n");
 
-        if (!(send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, NULL))){
+        if (!(send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, speed))){
             continue;
         }
         char response[SIZEOF_MSG] = "";
         connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
         /* Listening to RBC */
         do {
-
-            send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, NULL);
+            sprintf(speed, "%d", get_speed());
+            sprintf(localisation, "%d", get_localisation());
+            send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
 
             memset(response, 0, sizeof(response));
             rval = read(socket_desc, response, SIZEOF_MSG);
@@ -50,7 +52,7 @@ int main(int argc , char *argv[]) {
                 break;
             } else {
 
-                parse_data(response, &reqack, &entier, &id, &localisation);
+                parse_data(response, &reqack, &entier, &id, &localisation, &speed);
 
                 switch (entier) {
                     case ADD_TRAIN :
@@ -89,7 +91,8 @@ int main(int argc , char *argv[]) {
                     case MOVEMENT :
                         switch (reqack){
                             case REQUEST :
-                                send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, NULL);
+                                send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, speed);
+                                change_speed();
                                 break;
                             case ERROR :
                                 break;
@@ -164,13 +167,15 @@ int SocketReceive(int socket, char* response, short rcvSize)
     return 1;
 }
 
-char* getSpeed(void){
+int get_localisation(void){
+    int localisation = 10;
+    return localisation;
+}
+int get_speed(void){
     int speed = 1;
-    char* speed_ = NULL;
-    sprintf(speed_, "%d", speed);
-    return speed_;
+    return speed;
 }
 
-void changeSpeed(void) {
+void change_speed(void) {
 
 }

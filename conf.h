@@ -64,11 +64,10 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     strcat(data, SEPARATOR);
     strcat(data, local);
     strcat(data, SEPARATOR);
-
     //printf("reqack = %d entier = %d, id = %s, local = %s\n", reqack, entier, id, local);
-    if(speed != NULL) {
-        strcat(data, speed);
-    }
+    strcat(data, speed);
+    strcat(data, SEPARATOR);
+
 
     if (send(socket, data, strlen(data), 0) < 0) {
         perror("Writing stream message");
@@ -80,7 +79,7 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     }
 }
 
-void parse_data(char data[], int* reqack, int* entier, char** id, char** local) {
+void parse_data(char data[], int* reqack, int* entier, char** id, char** local, char** speed) {
     char *reqack_ = NULL, *entier_ = NULL;
     reqack_ = str_sub(data, 0, 1);
     entier_ = str_sub(data, 2, 3);
@@ -89,6 +88,7 @@ void parse_data(char data[], int* reqack, int* entier, char** id, char** local) 
     strtok(data, SEPARATOR);
     *id = strtok(NULL, SEPARATOR);
     *local = strtok(NULL, SEPARATOR);
+    *speed = strtok(NULL, SEPARATOR);
 }
 
 #endif

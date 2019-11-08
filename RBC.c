@@ -20,7 +20,7 @@ void* connection_handler(void *sock)
     int datasock = *(int*)sock;
     int rval;
     int reqack, entier;
-    char *id = NULL, *localisation = NULL;
+    char *id = NULL, *localisation = NULL, *speed = NULL;
 
     char data[SIZEOF_MSG];
     Train *t = malloc(sizeof(Train));
@@ -42,8 +42,8 @@ void* connection_handler(void *sock)
             }
             else
             {
-                parse_data(data, &reqack, &entier, &id, &localisation);
-                printf("reqack = %d\n", reqack);
+                parse_data(data, &reqack, &entier, &id, &localisation, &speed);
+                //printf("reqack = %d\n", reqack);
                 
                 switch(entier){
                     case ADD_TRAIN :
@@ -51,19 +51,21 @@ void* connection_handler(void *sock)
                             case REQUEST :
                                 ;
                                 short signed localisation_ = atoi(localisation);
+                                short signed speed_ = atoi(speed);
 
                                 for (int i = 0; i < MAX_LENGTH_ID; i++) {
                                     t -> id[i] = id[i];
                                 }
                                 t -> local = localisation_;
                                 t -> eoa = 100;
+                                t -> speed = speed_;
                                 bool is_added = add_to_rbc(t);
 
                                 if (is_added){
                                     update_local_rbc(t -> id, t -> local);
                                 }
                                 else {
-                                    send_data(datasock, ERROR, ADD_TRAIN, id, localisation, NULL);
+                                    send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
                                 }
 
                                 update_eoa_rbc();
@@ -77,7 +79,7 @@ void* connection_handler(void *sock)
                                 }
 
                                 /* Send validation request to EVC */
-                                send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, NULL);
+                                send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
                                 break;
                             case ERROR :
                                 break;
@@ -87,7 +89,7 @@ void* connection_handler(void *sock)
                     case LOCATION_REPORT :
                         switch (reqack){
                             case REQUEST :
-                                send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, NULL);
+                                send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
                                 break;
                             case RESPONSE :
                                 break;
@@ -118,7 +120,7 @@ void* connection_handler(void *sock)
 
                 }
             }
-            send_data(datasock, REQUEST, MOVEMENT, id, localisation, NULL);
+            send_data(datasock, REQUEST, MOVEMENT, id, localisation, "2");
             sleep(1);
 
 
