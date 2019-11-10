@@ -26,6 +26,76 @@ typedef int bool;
 #define EOM "$"
 #define MAX_SIZE 6
 
+typedef struct Element Element;
+struct Element
+{
+    char* msg;
+    Element *suivant;
+};
+
+typedef struct Fifo Fifo;
+struct Fifo
+{
+    Element *premier;
+};
+
+Fifo* initialisation()
+{
+    Fifo *fifo = malloc(sizeof(*fifo));
+    fifo->premier = NULL;
+
+    return fifo;
+}
+
+void enfiler(Fifo *fifo, char* newMsg)
+{
+    Element *nouveau = malloc(sizeof(*nouveau));
+    if (fifo == NULL || nouveau == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    nouveau->msg = newMsg;
+    nouveau->suivant = NULL;
+
+    if (fifo->premier != NULL) /* La file n'est pas vide */
+    {
+        /* On se positionne à la fin de la file */
+        Element *elementActuel = fifo->premier;
+        while (elementActuel->suivant != NULL)
+        {
+            elementActuel = elementActuel->suivant;
+        }
+        elementActuel->suivant = nouveau;
+    }
+    else /* La file est vide, notre élément est le premier */
+    {
+        fifo->premier = nouveau;
+    }
+}
+
+char* defiler(Fifo *fifo)
+{
+    if (fifo == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    char* request = "";
+
+    /* On vérifie s'il y a quelque chose à défiler */
+    if (fifo->premier != NULL)
+    {
+        Element *elementDefile = fifo->premier;
+
+        request = elementDefile->msg;
+        fifo->premier = elementDefile->suivant;
+        free(elementDefile);
+    }
+
+    return request;
+}
+
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
 char *str_sub (const char *s, unsigned int start, unsigned int end);
 
@@ -81,18 +151,21 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     }
 }
 
-void parse_EOM(char data[], char* table[]) {
+void parse_EOM(Fifo *fifo, char data[]) {
     char* token;
     int i = 0;
 
-    /* get the first test */
+    /* get the first request */
     token = strtok(data, EOM);
 
-    /* walk through other tests */
+    enfiler(fifo, token);
+
+
+    /* walk through other requests */
     while( token != NULL ) {
         i++;
-        strcpy(table[i], token);
         token = strtok(NULL, EOM);
+        enfiler(fifo, token);
     }
 }
 

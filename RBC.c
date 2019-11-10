@@ -22,7 +22,8 @@ void* connection_handler(void *sock)
     int rval;
     int reqack, entier;
     char *id = NULL, *localisation = NULL, *speed = NULL;
-    char *messages[6];
+    char *message;
+    Fifo *fifoRequests = initialisation();
 
     char data[SIZEOF_MSG];
     Train *t = malloc(sizeof(Train));
@@ -46,16 +47,89 @@ void* connection_handler(void *sock)
             else
             {
                 printf("Received : %s\n", data);
-                parse_EOM(data, messages);
 
-                int j = 0;
-                while(j < MAX_SIZE )
+                parse_EOM(fifoRequests, data);
+
+                message = defiler(fifoRequests);
+                while(message!=NULL )
                 {
-                    parse_data(messages[j], &reqack, &entier, &id, &localisation, &speed);
-                    j++;
+                    parse_data(message, &reqack, &entier, &id, &localisation, &speed);
+                    switch(entier){
+                        case ADD_TRAIN :
+                            switch (reqack){
+                                case REQUEST :
+                                    ;
+                                    short signed localisation_ = atoi(localisation);
+                                    short signed speed_ = atoi(speed);
+
+                                    for (int i = 0; i < MAX_LENGTH_ID; i++) {
+                                        t -> id[i] = id[i];
+                                    }
+                                    t -> local = localisation_;
+                                    t -> eoa = 100;
+                                    t -> speed = speed_;
+                                    bool is_added = add_to_rbc(t);
+
+                                    if (is_added){
+                                        update_local_rbc(t -> id, t -> local);
+                                    }
+                                    else {
+                                        send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
+                                    }
+
+                                    update_eoa_rbc();
+                                    /* Go through array of trains to get the right number of train*/
+                                    for(int i =0; i<trains.nb_trains; i++)
+                                    {
+                                        if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
+                                            //num_train = i;
+                                            break;
+                                        }
+                                    }
+
+                                    /* Send validation request to EVC */
+                                    send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+
+                        case LOCATION_REPORT :
+                            switch (reqack){
+                                case REQUEST :
+                                    send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
+                                    break;
+                                case RESPONSE :
+                                    break;
+                            }
+                            break;
+
+                        case MOVEMENT :
+                            switch (reqack){
+                                case RESPONSE :
+                                    printf("The speed request has been sent\n");
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+
+                            //This use case is not a part of the project
+                            /*case DELETE_TRAIN :
+                                switch (reqack){
+                                    case REQUEST :
+                                        break;
+                                    case RESPONSE :
+                                        break;
+                                    case ERROR :
+                                        break;
+                                }
+                                break;*/
+
+                    }
+                    message = defiler(fifoRequests);
                 }
-
-
             }
             char* speed_requested = speed;
             sprintf(speed_requested, "%d", speed_to_have());
