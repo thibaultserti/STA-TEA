@@ -139,7 +139,9 @@ void* connection_handler(void *sock)
 
         } while (rval > 0);
     puts("Connection ended");
-    close(datasock);
+    shutdown(datasock, 0);
+    shutdown(datasock, 1);
+    shutdown(datasock, 2);
     free(sock);
     return 0;
 }

@@ -127,7 +127,7 @@ char *str_sub (const char *s, unsigned int start, unsigned int end) {
 }
 
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed){
-    char data[SIZEOF_MSG] = "";
+    char data[SIZEOF_MSG] = "1";
     sprintf(data, "%d", reqack);
     char temp[2] = "";
     sprintf(temp, "%d", entier);
@@ -141,7 +141,7 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     strcat(data, SEPARATOR);
     strcat(data, EOM);
 
-    if (send(socket, data, strlen(data), 0) < 0) {
+    if (send(socket, data, strlen(data),MSG_NOSIGNAL) < 0) {
         perror("Writing stream message");
         return false;
     }
@@ -149,6 +149,7 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
         //printf("Sending the following message : %s\n", data);
         return true;
     }
+    return false;
 }
 
 void parse_EOM(Fifo *fifo, char data[]) {
