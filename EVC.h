@@ -17,4 +17,6 @@ int SocketReceive(int socket, char* response, short rcvSize);
 int get_localisation(void);
 int get_speed(void);
 void change_speed(void);
+void slow_down(void);
+
  #endif

@@ -57,7 +57,7 @@ int main(int argc , char *argv[]) {
                 perror("Ending connection\n");
                 break;
             } else {
-                printf("Received : %s\n", data);
+                //printf("Received : %s\n", data);
 
                 parse_EOM(fifoRequests, data);
 
@@ -80,7 +80,7 @@ int main(int argc , char *argv[]) {
                         case LOCATION_REPORT :
                             switch (reqack) {
                                 case RESPONSE :
-                                    printf("Position has been transmitted\n");
+                                    //printf("Position has been transmitted\n");
                                     break;
                                 case ERROR :
                                     break;
@@ -170,6 +170,8 @@ int SocketReceive(int socket, char* response, short rcvSize)
             qu'après la première instance du while */
         {
             perror("Reading stream message");
+            slow_down();
+            return 0;
         }
         if (rcv == 0)
         {
@@ -190,5 +192,9 @@ int get_speed(void){
 }
 
 void change_speed(void) {
+
+}
+
+void slow_down(void) {
 
 }

@@ -1,17 +1,19 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/time.h>
 #include "RBC.h"
 
 Trains trains;
 int speed;
+
+void timer();
 
 /*
  * This will handle connection for each client
@@ -46,7 +48,7 @@ void* connection_handler(void *sock)
             }
             else
             {
-                printf("Received : %s\n", data);
+                //printf("Received : %s\n", data);
 
                 parse_EOM(fifoRequests, data);
 
@@ -108,7 +110,7 @@ void* connection_handler(void *sock)
                         case MOVEMENT :
                             switch (reqack){
                                 case RESPONSE :
-                                    printf("The speed request has been sent\n");
+                                    //printf("The speed request has been sent\n");
                                     break;
                                 case ERROR :
                                     break;
@@ -232,12 +234,40 @@ void* print_trains(void* arg){
 }
 
 int speed_to_have(void){
-    speed ++;
+    //speed ++;
     return speed;
+}
+
+void handler_signal(int cur){
+    static int count = 0;
+    printf ("timer expired %d times\n", count++);
+}
+
+void timer() {
+    struct sigaction sa;
+    struct itimerval timer;
+
+    /* Install timer_handler as the signal handler for SIGVTALRM. */
+    memset (&sa, 0, sizeof (sa));
+    sa.sa_handler = &handler_signal;
+    sigaction (SIGVTALRM, &sa, NULL);
+
+    /* Configure the timer to expire after 250 msec... */
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 250000;
+    /* ... and every 250 msec after that. */
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 250000;
+    /* Start a virtual timer. It counts down whenever this process is
+      executing. */
+    setitimer (ITIMER_VIRTUAL, &timer, NULL);
 }
 
 int main()
 {
+
+    //Set timer to trigger signal_handler
+    timer();
 
     /* Initialization of the structure trains */
     trains.nb_trains = 0;
