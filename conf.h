@@ -39,6 +39,15 @@ struct Fifo
     Element *premier;
 };
 
+bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
+char *str_sub (const char *s, unsigned int start, unsigned int end);
+Fifo* initialisation(void);
+void enfiler(Fifo *fifo, char* newMsg);
+char *defiler(Fifo *fifo);
+char *str_sub (const char *s, unsigned int start, unsigned int end);
+void parse_EOM(Fifo *fifo, char data[]);
+void parse_data(char data[], int* reqack, int* entier, char** id, char** local, char** speed);
+
 Fifo* initialisation()
 {
     Fifo *fifo = malloc(sizeof(*fifo));
@@ -95,9 +104,6 @@ char* defiler(Fifo *fifo)
 
     return request;
 }
-
-bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
-char *str_sub (const char *s, unsigned int start, unsigned int end);
 
 char *str_sub (const char *s, unsigned int start, unsigned int end) {
     char *new_s = NULL;
