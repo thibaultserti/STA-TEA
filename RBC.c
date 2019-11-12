@@ -1,16 +1,19 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/time.h>
 #include "RBC.h"
 
 Trains trains;
+int speed;
+
+void timer();
 
 /*
  * This will handle connection for each client
@@ -21,6 +24,8 @@ void* connection_handler(void *sock)
     int rval;
     int reqack, entier;
     char *id = NULL, *localisation = NULL, *speed = NULL;
+    char *message;
+    Fifo *fifoRequests = initialisation();
 
     char data[SIZEOF_MSG];
     Train *t = malloc(sizeof(Train));
@@ -28,7 +33,8 @@ void* connection_handler(void *sock)
     if (datasock == -1) {
         perror("Accept");
     } else do {
-            
+
+            data[0] = '\0';
             /* Receive first request from EVC */
             memset(data, 0, sizeof(data));
             rval = read(datasock, data, SIZEOF_MSG);
@@ -42,93 +48,100 @@ void* connection_handler(void *sock)
             }
             else
             {
-                parse_data(data, &reqack, &entier, &id, &localisation, &speed);
-                //printf("reqack = %d\n", reqack);
-                
-                switch(entier){
-                    case ADD_TRAIN :
-                        switch (reqack){
-                            case REQUEST :
-                                ;
-                                short signed localisation_ = atoi(localisation);
-                                short signed speed_ = atoi(speed);
+                //printf("Received : %s\n", data);
 
-                                for (int i = 0; i < MAX_LENGTH_ID; i++) {
-                                    t -> id[i] = id[i];
-                                }
-                                t -> local = localisation_;
-                                t -> eoa = 100;
-                                t -> speed = speed_;
-                                bool is_added = add_to_rbc(t);
+                parse_EOM(fifoRequests, data);
 
-                                if (is_added){
-                                    update_local_rbc(t -> id, t -> local);
-                                }
-                                else {
-                                    send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
-                                }
+                message = defiler(fifoRequests);
+                while(message!=NULL )
+                {
+                    parse_data(message, &reqack, &entier, &id, &localisation, &speed);
+                    switch(entier){
+                        case ADD_TRAIN :
+                            switch (reqack){
+                                case REQUEST :
+                                    ;
+                                    short signed localisation_ = atoi(localisation);
+                                    short signed speed_ = atoi(speed);
 
-                                update_eoa_rbc();
-                                /* Go through array of trains to get the right number of train*/
-                                for(int i =0; i<trains.nb_trains; i++)
-                                {
-                                    if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                                        //num_train = i;
-                                        break;
+                                    for (int i = 0; i < MAX_LENGTH_ID; i++) {
+                                        t -> id[i] = id[i];
                                     }
+                                    t -> local = localisation_;
+                                    t -> eoa = 100;
+                                    t -> speed = speed_;
+                                    bool is_added = add_to_rbc(t);
+
+                                    if (is_added){
+                                        update_local_rbc(t -> id, t -> local);
+                                    }
+                                    else {
+                                        send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
+                                    }
+
+                                    update_eoa_rbc();
+                                    /* Go through array of trains to get the right number of train*/
+                                    for(int i =0; i<trains.nb_trains; i++)
+                                    {
+                                        if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
+                                            //num_train = i;
+                                            break;
+                                        }
+                                    }
+
+                                    /* Send validation request to EVC */
+                                    send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+
+                        case LOCATION_REPORT :
+                            switch (reqack){
+                                case REQUEST :
+                                    send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
+                                    break;
+                                case RESPONSE :
+                                    break;
+                            }
+                            break;
+
+                        case MOVEMENT :
+                            switch (reqack){
+                                case RESPONSE :
+                                    //printf("The speed request has been sent\n");
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+
+                            //This use case is not a part of the project
+                            /*case DELETE_TRAIN :
+                                switch (reqack){
+                                    case REQUEST :
+                                        break;
+                                    case RESPONSE :
+                                        break;
+                                    case ERROR :
+                                        break;
                                 }
+                                break;*/
 
-                                /* Send validation request to EVC */
-                                send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
-                                break;
-                            case ERROR :
-                                break;
-                        }
-                        break;
-
-                    case LOCATION_REPORT :
-                        switch (reqack){
-                            case REQUEST :
-                                send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
-                                break;
-                            case RESPONSE :
-                                break;
-                        }
-                        break;
-
-                    case MOVEMENT :
-                        switch (reqack){
-                            case RESPONSE :
-                                printf("The speed request has been sent\n");
-                                break;
-                            case ERROR :
-                                break;
-                        }
-                        break;
-
-                    //This use case is not a part of the project
-                    /*case DELETE_TRAIN :
-                        switch (reqack){
-                            case REQUEST :
-                                break;
-                            case RESPONSE :
-                                break;
-                            case ERROR :
-                                break;
-                        }
-                        break;*/
-
+                    }
+                    message = defiler(fifoRequests);
                 }
             }
             char* speed_requested = speed;
             sprintf(speed_requested, "%d", speed_to_have());
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
-            sleep(1);
-
 
         } while (rval > 0);
     puts("Connection ended");
-    close(datasock);
+    shutdown(datasock, 0);
+    shutdown(datasock, 1);
+    shutdown(datasock, 2);
     free(sock);
     return 0;
 }
@@ -223,12 +236,58 @@ void* print_trains(void* arg){
 }
 
 int speed_to_have(void){
-    int speed = 1;
+    //speed ++;
     return speed;
+}
+
+void timer_thread(union sigval arg)
+{
+    int i = 0;
+    printf("Timer %d\n", i++);
+}
+
+void errno_abort(char* message)
+{
+    perror(message);
+    exit(EXIT_FAILURE);
+}
+
+void create_timer(unsigned i)
+{
+    timer_t timer_id;
+    int status;
+    struct itimerspec ts;
+    struct sigevent se;
+
+    /*
+     * Set the sigevent structure to cause the signal to be
+     * delivered by creating a new thread.
+     */
+    se.sigev_notify = SIGEV_THREAD;
+    se.sigev_value.sival_ptr = &timer_id;
+    se.sigev_notify_function = timer_thread;
+    se.sigev_notify_attributes = NULL;
+
+    ts.it_value.tv_sec = 1;
+    ts.it_value.tv_nsec = 0;
+    ts.it_interval.tv_sec = 1;
+    ts.it_interval.tv_nsec = 0;
+
+    status = timer_create(CLOCK_REALTIME, &se, &timer_id);
+    if (status == -1)
+        errno_abort("Create timer");
+
+    status = timer_settime(timer_id, 0, &ts, 0);
+    if (status == -1)
+        errno_abort("Set timer");
 }
 
 int main()
 {
+    pthread_t thread;
+
+    //Set timer to trigger signal_handler
+    create_timer(1);
 
     /* Initialization of the structure trains */
     trains.nb_trains = 0;
@@ -267,18 +326,20 @@ int main()
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
 
-    pthread_t thread;
+    /* Create thread to print the table */
     pthread_create(&thread, NULL, print_trains, NULL);
 
     /* Accepting incoming connections */
     listen(sock, MAX_REQUEST);
     int c = sizeof(struct sockaddr_in);
     int new_socket;
+
     while ((new_socket = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)))
     {
-        pthread_t thread;
         int *new_sock = malloc(1);
         *new_sock = new_socket;
+        printf("Hello\n");
+
 
         /* Start a new thread to handle the connection */
         if(pthread_create(&thread, NULL, connection_handler, (void*) new_sock)<0)

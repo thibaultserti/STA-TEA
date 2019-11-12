@@ -10,11 +10,17 @@ int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
     speed = argv[4];
+    Fifo *fifoRequests = initialisation();
+    int socket_desc;
+    int connection;
+    int rval;
+    int reqack, entier;
+    char data[SIZEOF_MSG];
+
+    char* message;
+
     do {
-        int socket_desc;
-        int connection;
-        int rval;
-        int reqack, entier;
+
 
         printf("Trying to connect to RBC\n");
 
@@ -35,69 +41,76 @@ int main(int argc , char *argv[]) {
         if (!(send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, speed))){
             continue;
         }
-        char response[SIZEOF_MSG] = "";
-        connection = SocketReceive(socket_desc, response, SIZEOF_MSG);
+        connection = SocketReceive(socket_desc, data, SIZEOF_MSG);
         /* Listening to RBC */
         do {
             sprintf(speed, "%d", get_speed());
             sprintf(localisation, "%d", get_localisation());
             send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
 
-            memset(response, 0, sizeof(response));
-            rval = read(socket_desc, response, SIZEOF_MSG);
+            data[0] = '\0';
+            memset(data, 0, sizeof(data));
+            rval = read(socket_desc, data, SIZEOF_MSG);
             if (rval < 0) {
                 perror("Reading stream message");
             } else if (rval == 0) {
                 perror("Ending connection\n");
                 break;
             } else {
+                //printf("Received : %s\n", data);
 
-                parse_data(response, &reqack, &entier, &id, &localisation, &speed);
+                parse_EOM(fifoRequests, data);
 
-                switch (entier) {
-                    case ADD_TRAIN :
-                        switch (reqack) {
-                            case RESPONSE :
-                                printf("Train added\n");
-                                break;
-                            case ERROR :
-                                perror("Too many trains !\n");
-                                exit(0);
-                        }
-                        break;
+                message = defiler(fifoRequests);
 
-                    case LOCATION_REPORT :
-                        switch (reqack) {
-                            case RESPONSE :
-                                printf("Position has been transmitted\n");
-                                break;
-                            case ERROR :
-                                break;
-                        }
-                        break;
-                    //This use case is not a part of the project
-                    /*case DELETE_TRAIN :
-                        switch (reqack){
-                            case REQUEST :
-                                break;
-                            case RESPONSE :
-                                break;
-                            case ERROR :
-                                break;
+                while (message!= NULL) {
+                    parse_data(message, &reqack, &entier, &id, &localisation, &speed);
+                    switch (entier) {
+                        case ADD_TRAIN :
+                            switch (reqack) {
+                                case RESPONSE :
+                                    printf("Train added\n");
+                                    break;
+                                case ERROR :
+                                    perror("Too many trains !\n");
+                                    exit(0);
+                            }
+                            break;
 
-                        }
-                        break;*/
+                        case LOCATION_REPORT :
+                            switch (reqack) {
+                                case RESPONSE :
+                                    //printf("Position has been transmitted\n");
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+                            //This use case is not a part of the project
+                            /*case DELETE_TRAIN :
+                                switch (reqack){
+                                    case REQUEST :
+                                        break;
+                                    case RESPONSE :
+                                        break;
+                                    case ERROR :
+                                        break;
 
-                    case MOVEMENT :
-                        switch (reqack){
-                            case REQUEST :
-                                send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, speed);
-                                change_speed();
-                                break;
-                            case ERROR :
-                                break;
-                        }
-                        break;
+                                }
+                                break;*/
+
+                        case MOVEMENT :
+                            switch (reqack) {
+                                case REQUEST :
+                                    send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, speed);
+                                    change_speed();
+                                    break;
+                                case ERROR :
+                                    break;
+                            }
+                            break;
+                    }
+                    message = defiler(fifoRequests);
                 }
             }
         
@@ -157,6 +170,8 @@ int SocketReceive(int socket, char* response, short rcvSize)
             qu'après la première instance du while */
         {
             perror("Reading stream message");
+            slow_down();
+            return 0;
         }
         if (rcv == 0)
         {
@@ -177,5 +192,9 @@ int get_speed(void){
 }
 
 void change_speed(void) {
+
+}
+
+void slow_down(void) {
 
 }

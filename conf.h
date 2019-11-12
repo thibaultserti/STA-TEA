@@ -21,10 +21,89 @@ typedef int bool;
 #define LOCATION_REPORT 3
 #define MOVEMENT 4
 
+//building the message
 #define SEPARATOR ":"
+#define EOM "$"
+#define MAX_SIZE 6
+
+typedef struct Element Element;
+struct Element
+{
+    char* msg;
+    Element *suivant;
+};
+
+typedef struct Fifo Fifo;
+struct Fifo
+{
+    Element *premier;
+};
 
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed);
 char *str_sub (const char *s, unsigned int start, unsigned int end);
+Fifo* initialisation(void);
+void enfiler(Fifo *fifo, char* newMsg);
+char *defiler(Fifo *fifo);
+char *str_sub (const char *s, unsigned int start, unsigned int end);
+void parse_EOM(Fifo *fifo, char data[]);
+void parse_data(char data[], int* reqack, int* entier, char** id, char** local, char** speed);
+
+Fifo* initialisation()
+{
+    Fifo *fifo = malloc(sizeof(*fifo));
+    fifo->premier = NULL;
+
+    return fifo;
+}
+
+void enfiler(Fifo *fifo, char* newMsg)
+{
+    Element *nouveau = malloc(sizeof(*nouveau));
+    if (fifo == NULL || nouveau == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    nouveau->msg = newMsg;
+    nouveau->suivant = NULL;
+
+    if (fifo->premier != NULL) /* La file n'est pas vide */
+    {
+        /* On se positionne à la fin de la file */
+        Element *elementActuel = fifo->premier;
+        while (elementActuel->suivant != NULL)
+        {
+            elementActuel = elementActuel->suivant;
+        }
+        elementActuel->suivant = nouveau;
+    }
+    else /* La file est vide, notre élément est le premier */
+    {
+        fifo->premier = nouveau;
+    }
+}
+
+char* defiler(Fifo *fifo)
+{
+    if (fifo == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    char* request = "";
+
+    /* On vérifie s'il y a quelque chose à défiler */
+    if (fifo->premier != NULL)
+    {
+        Element *elementDefile = fifo->premier;
+
+        request = elementDefile->msg;
+        fifo->premier = elementDefile->suivant;
+        free(elementDefile);
+    }
+
+    return request;
+}
 
 char *str_sub (const char *s, unsigned int start, unsigned int end) {
     char *new_s = NULL;
@@ -54,7 +133,7 @@ char *str_sub (const char *s, unsigned int start, unsigned int end) {
 }
 
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed){
-    char data[SIZEOF_MSG] = "";
+    char data[SIZEOF_MSG] = "1";
     sprintf(data, "%d", reqack);
     char temp[2] = "";
     sprintf(temp, "%d", entier);
@@ -64,23 +143,42 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
     strcat(data, SEPARATOR);
     strcat(data, local);
     strcat(data, SEPARATOR);
-    //printf("reqack = %d entier = %d, id = %s, local = %s\n", reqack, entier, id, local);
     strcat(data, speed);
     strcat(data, SEPARATOR);
+    strcat(data, EOM);
 
-
-    if (send(socket, data, strlen(data), 0) < 0) {
+    if (send(socket, data, strlen(data),MSG_NOSIGNAL) < 0) {
         perror("Writing stream message");
         return false;
     }
     else {
-        printf("Sending the following message : %s\n", data);
+        //printf("Sending the following message : %s\n", data);
         return true;
+    }
+    return false;
+}
+
+void parse_EOM(Fifo *fifo, char data[]) {
+    char* token;
+    int i = 0;
+
+    /* get the first request */
+    token = strtok(data, EOM);
+
+    enfiler(fifo, token);
+
+
+    /* walk through other requests */
+    while( token != NULL ) {
+        i++;
+        token = strtok(NULL, EOM);
+        enfiler(fifo, token);
     }
 }
 
 void parse_data(char data[], int* reqack, int* entier, char** id, char** local, char** speed) {
     char *reqack_ = NULL, *entier_ = NULL;
+
     reqack_ = str_sub(data, 0, 1);
     entier_ = str_sub(data, 2, 3);
     *reqack = atoi(reqack_);
