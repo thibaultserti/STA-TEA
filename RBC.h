@@ -32,7 +32,6 @@ bool update_eoa_rbc(void);
 void* connection_handler(void *sock);
 void* print_trains(void *arg);
 int speed_to_have(void);
-void timer();
-void handler_signal(int cur);
+void create_timer(unsigned i);
 
 #endif

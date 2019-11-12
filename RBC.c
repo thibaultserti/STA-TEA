@@ -240,36 +240,54 @@ int speed_to_have(void){
     return speed;
 }
 
-void handler_signal(int cur){
-    static int count = 0;
-    printf ("timer expired %d times\n", count++);
+void timer_thread(union sigval arg)
+{
+    int i = 0;
+    printf("Timer %d\n", i++);
 }
 
-void timer() {
-    struct sigaction sa;
-    struct itimerval timer;
+void errno_abort(char* message)
+{
+    perror(message);
+    exit(EXIT_FAILURE);
+}
 
-    /* Install timer_handler as the signal handler for SIGVTALRM. */
-    memset (&sa, 0, sizeof (sa));
-    sa.sa_handler = &handler_signal;
-    sigaction (SIGVTALRM, &sa, NULL);
+void create_timer(unsigned i)
+{
+    timer_t timer_id;
+    int status;
+    struct itimerspec ts;
+    struct sigevent se;
 
-    /* Configure the timer to expire after 250 msec... */
-    timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 250000;
-    /* ... and every 250 msec after that. */
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 250000;
-    /* Start a virtual timer. It counts down whenever this process is
-      executing. */
-    setitimer (ITIMER_VIRTUAL, &timer, NULL);
+    /*
+     * Set the sigevent structure to cause the signal to be
+     * delivered by creating a new thread.
+     */
+    se.sigev_notify = SIGEV_THREAD;
+    se.sigev_value.sival_ptr = &timer_id;
+    se.sigev_notify_function = timer_thread;
+    se.sigev_notify_attributes = NULL;
+
+    ts.it_value.tv_sec = 1;
+    ts.it_value.tv_nsec = 0;
+    ts.it_interval.tv_sec = 1;
+    ts.it_interval.tv_nsec = 0;
+
+    status = timer_create(CLOCK_REALTIME, &se, &timer_id);
+    if (status == -1)
+        errno_abort("Create timer");
+
+    status = timer_settime(timer_id, 0, &ts, 0);
+    if (status == -1)
+        errno_abort("Set timer");
 }
 
 int main()
 {
+    pthread_t thread;
 
     //Set timer to trigger signal_handler
-    timer();
+    create_timer(1);
 
     /* Initialization of the structure trains */
     trains.nb_trains = 0;
@@ -308,18 +326,20 @@ int main()
     }
     printf("Socket has port #%d\n", ntohs(server.sin_port));
 
-    pthread_t thread;
+    /* Create thread to print the table */
     pthread_create(&thread, NULL, print_trains, NULL);
 
     /* Accepting incoming connections */
     listen(sock, MAX_REQUEST);
     int c = sizeof(struct sockaddr_in);
     int new_socket;
+
     while ((new_socket = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)))
     {
-        pthread_t thread;
         int *new_sock = malloc(1);
         *new_sock = new_socket;
+        printf("Hello\n");
+
 
         /* Start a new thread to handle the connection */
         if(pthread_create(&thread, NULL, connection_handler, (void*) new_sock)<0)
