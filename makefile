@@ -1,5 +1,5 @@
 CFLAGS=-ansi -Wall -pedantic
-LFLAGS=-std=gnu11 -lm
+LFLAGS=-std=gnu11 -lm -lrt
 LDFLAGS=-pthread
 CC=gcc
 
