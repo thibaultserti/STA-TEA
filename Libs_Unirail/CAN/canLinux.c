@@ -117,7 +117,7 @@ short ECAN1_reconstructMessage(uCAN1_MSG *recCanMsg, char* destinationArray, sho
 		return(-2);
 	}
 	
-	if (flagReceptions >>(recCanMsg->frame.id - startIDFrame - 1) & 1 == 1)		//message deja reçu
+	if (flagReceptions >>(recCanMsg->frame.id - startIDFrame - 1) & (1 == 1))		//message deja reï¿½u
 	{
 		printf("Error: message nb %X already received", recCanMsg->frame.id);
 		return(-1);
