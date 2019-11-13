@@ -26,17 +26,21 @@ typedef struct TrainInfo
 }TrainInfo;
 
 ///longueurs des cantons 1 a 9 (grande boucle), en cm.
-const int sectionsLength[] = {167, 190, 226, 162, 161, 213, 184, 163, 279};
-int d_tour = 167+ 190+ 226+ 162+ 161+ 213+ 184+ 163+ 279;
-//int nb_tour = 0;
+float d_tour = 167+ 190+ 226+ 162+ 161+ 213+ 184+ 163+ 279;
+const int sectionsPos[] = {0,167, 357, 583, 745, 906, 1119, 1303, 1466}; 
+
 int numero_balise;
 float distance_prec;
+float d0 = 0; 
 
 struct timeval instant_init;
 struct timeval instant_prec;
 struct timeval instant;
 unsigned char status, varDebug1, varDebug2;
 
+float dtu;
+float dts;
+float delta_t;
 
 struct TrainInfo train1;
 

@@ -7,6 +7,7 @@
 #define MAX_NB_TRAINS 100
 #define MAX_REQUEST 5
 
+#define DIST_INTER_TRAIN
 typedef struct train
 {
     char id[MAX_LENGTH_ID+1];
@@ -31,7 +32,7 @@ bool update_local_rbc(char* id, short local);
 bool update_eoa_rbc(void);
 void* connection_handler(void *sock);
 void* print_trains(void *arg);
-int speed_to_have(void);
+float speed_to_have(int num_train);
 void create_timer(unsigned i);
 
 #endif

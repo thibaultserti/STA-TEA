@@ -137,7 +137,7 @@ void* connection_handler(void *sock)
                 }
             }
             char* speed_requested = speed;
-            sprintf(speed_requested, "%3.1f", speed_to_have());
+            sprintf(speed_requested, "%3.1f", speed_to_have(num_train));
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
 
         } while (rval > 0);
@@ -232,15 +232,25 @@ void* print_trains(void* arg){
     while (1) {
         printf("NAME   LOC EOA\n");
         for (int i = 0; i < (trains.nb_trains); i++) {
-            printf("%s %d %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+            printf("%s %4.1f %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
         }
         sleep(1);
     }
 }
 
-int speed_to_have(void){
-    //speed ++;
-    return (speed / 2.0);
+float speed_to_have(int num_train){
+
+    /*float speed_req = (trains.trains[num_train] -> speed) + 
+                    trains.trains[num_train+1] -> local -  
+                    trains.trains[num_train] -> local - DIST_INTER_TRAIN
+
+*/ if (num_train == trains.nb_trains)
+    {
+        return (trains.trains[num_train+1] -> speed / 2.0);
+    }
+    else {
+        return 20.0;
+    }
 }
 
 void timer_thread(union sigval arg)

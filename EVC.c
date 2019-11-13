@@ -347,70 +347,67 @@ int  WriteTrameStatusRUNRP1(unsigned char status, unsigned char varDebug1, unsig
 /// Identification de la trame CAN
 ///////////////////////////////////////////
 
-
 void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos)
 {
 	gettimeofday(&instant,NULL);	
-		if (recCanMsg->frame.id == ID_balises_3){
-			printf("TRAME CAN : %u\n", recCanMsg->frame.id);
-		}
-
-    	switch (recCanMsg->frame.id)
-	    {
-			/** Recuperer Info BALISE  **/
-			case ID_balises_3 :
-
-				//MAJ_Info_BALISE (XXX);
-				//numero_balise = (int)MESCAN_GetData8(recCanMsg, cdmc_sourceNumeroBalise);//Le NUMERO DE LA BALISE
-				numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
-				printf("\nBalise n°%d", numero_balise);
-				infos-> nb_impulsions = 0;
-
-				/*if (numero_balise==1 && !PremiereBalise){
-					nb_tour+=1;
-				}*/
-				for (int i=0;i<numero_balise;i++)
-				{
-					printf("MODIFICATIONS CD VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
-					infos->distance += sectionsLength[i];	
-				}
-				
-				break ;
-
-			case MC_ID_MESSAGE_GSM_RECEIVED:
-				//MAJ_GSMR(XXX);
-				break;
-
-			case MC_ID_SCHEDULEUR_MESURES  : /** Envoi la vitesse instantannÃ©e (consigne vitesse) ,	le nombre dâ€™impulsions, la vitesse mesurÃ©e, lâ€™erreur du PID **/
-				if(MESCAN_GetData8(recCanMsg, cdmc_ordonnancementId)==MC_ID_RP1_STATUS_RUN)
-					WriteTrameStatusRUNRP1(status, varDebug1, varDebug2);
-				infos-> imp_mesuree= (int)MESCAN_GetData8(recCanMsg, cdmc_vitesseMesuree);/** le nbre d'implusion envoyÃ© ici
-				// est le nombre d'impulsion entre 2 mesures **/
-				infos-> nb_impulsions+= infos-> imp_mesuree;
-				infos-> distance += PAS_ROUE_CODEUSE * (infos->nb_impulsions);
-				infos-> vit_consigne = (float)MESCAN_GetData8(recCanMsg, cdmc_vitesseConsigneInterne);
-				//printf("Actualisation: Postition: %lf, Vit: %d \n", infos-> distance, infos-> imp_mesuree);
-				break;
-
-			default :
-				printf("frame est de can id %X \n",recCanMsg->frame.id);
-				break;
-		}
-	
-	if(DISTANCE_PARCOURS-infos->distance)
+	switch (recCanMsg->frame.id)
 	{
-		infos->vit_mesuree=(d_tour-distance_prec+(infos->distance))/(instant.tv_sec-instant_prec.tv_sec);	
+		/** Recuperer Info BALISE  **/
+		case ID_balises_3 :
+			//MAJ_Info_BALISE (XXX);
+			numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
+			printf("Balise no : %d\n", numero_balise);
+			d0 = sectionsPos[numero_balise-1];
+			infos-> nb_impulsions = 0;
+			infos->distance = d0;
+			break;
 
+		case MC_ID_MESSAGE_GSM_RECEIVED:
+			//MAJ_GSMR(XXX);
+			break;
+
+		case MC_ID_SCHEDULEUR_MESURES  : /** Envoi la vitesse instantannee (consigne vitesse) ,	le nombre dâ€™impulsions, la vitesse mesurÃ©e, lâ€™erreur du PID **/
+			if(MESCAN_GetData8(recCanMsg, cdmc_ordonnancementId)==MC_ID_RP1_STATUS_RUN)
+				WriteTrameStatusRUNRP1(status, varDebug1, varDebug2);
+
+			infos-> imp_mesuree = (int)MESCAN_GetData8(recCanMsg, cdmc_vitesseMesuree);/** le nbre d'implusions envoye ici
+			// est le nombre d'impulsions entre 2 mesures **/
+			infos-> nb_impulsions += infos-> imp_mesuree;
+			infos-> distance = d0 + PAS_ROUE_CODEUSE * (infos->nb_impulsions);
+			infos-> vit_consigne = (float)MESCAN_GetData8(recCanMsg, cdmc_vitesseConsigneInterne);
+			//printf("Actualisation: Postition: %lf, Vit: %d \n", infos-> distance, infos-> imp_mesuree);
+			break;
+		
+		default :
+			printf("frame est de can id %X \n",recCanMsg->frame.id);
+			break;
+	}
+
+	dtu = (fmax(0,instant.tv_usec-instant_prec.tv_usec))*1.0e-6;  
+	dts = fmax(0,instant.tv_sec-instant_prec.tv_sec);
+	delta_t = dtu+dts;
+	/*
+	printf(" dtu = %lf\n", dtu);
+	printf(" dts = %lf\n", dts);
+	printf(" dt = %lf\n", delta_t);
+	*/
+
+	if(distance_prec > infos->distance)
+	{
+		infos->vit_mesuree=(d_tour-distance_prec+(infos->distance))/(delta_t);	
 	}
 	else
 	{
-		infos->vit_mesuree=((infos->distance)-distance_prec)/((instant.tv_sec)-(instant_prec.tv_sec));	
+		infos->vit_mesuree=((infos->distance)-distance_prec)/(delta_t);	
 	}
-	
+
 	distance_prec=infos->distance;
 	instant_prec = instant;
+
 	// AFFICHAGE
-	printf("\nT = %lu s\n", instant.tv_sec - instant_init.tv_sec);
-	//printf("Vitesse : %lf cm/s\n",  infos->vit_mesuree);
-	//printf("Position : %lf cm \n",  infos->distance);
+	printf("T = %lu s\t", instant.tv_sec - instant_init.tv_sec);
+	//printf("IMPULSIONS : %lf cm \t",  infos->nb_impulsions*PAS_ROUE_CODEUSE);
+	printf("Position : %lf cm \t",  infos->distance);
+	printf("Vitesse : %lf cm/s\n",  infos->vit_mesuree);
+
 }
