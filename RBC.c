@@ -25,6 +25,7 @@ void* connection_handler(void *sock)
     int reqack, entier;
     char *id = NULL, *localisation = NULL, *speed = NULL;
     char *message;
+    int num_train;
     Fifo *fifoRequests = initialisation();
 
     char data[SIZEOF_MSG];
@@ -61,8 +62,8 @@ void* connection_handler(void *sock)
                             switch (reqack){
                                 case REQUEST :
                                     ;
-                                    short signed localisation_ = atoi(localisation);
-                                    short signed speed_ = atoi(speed);
+                                    float localisation_ = atof(localisation);
+                                    float speed_ = atoi(speed);
 
                                     for (int i = 0; i < MAX_LENGTH_ID; i++) {
                                         t -> id[i] = id[i];
@@ -84,7 +85,7 @@ void* connection_handler(void *sock)
                                     for(int i =0; i<trains.nb_trains; i++)
                                     {
                                         if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                                            //num_train = i;
+                                            num_train = i;
                                             break;
                                         }
                                     }
@@ -101,6 +102,8 @@ void* connection_handler(void *sock)
                             switch (reqack){
                                 case REQUEST :
                                     send_data(datasock, RESPONSE, LOCATION_REPORT, id, localisation, speed);
+                                    trains.trains[num_train] -> speed = atof(speed);
+                                    trains.trains[num_train] -> local = atof(localisation);
                                     break;
                                 case RESPONSE :
                                     break;
@@ -134,7 +137,7 @@ void* connection_handler(void *sock)
                 }
             }
             char* speed_requested = speed;
-            sprintf(speed_requested, "%d", speed_to_have());
+            sprintf(speed_requested, "%3.1f", speed_to_have());
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
 
         } while (rval > 0);
@@ -237,7 +240,7 @@ void* print_trains(void* arg){
 
 int speed_to_have(void){
     //speed ++;
-    return speed;
+    return (speed / 2.0);
 }
 
 void timer_thread(union sigval arg)

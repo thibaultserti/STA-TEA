@@ -10,9 +10,9 @@
 typedef struct train
 {
     char id[MAX_LENGTH_ID+1];
-    short signed local;
+    float local;
     short signed eoa;
-    short signed speed;
+    float speed;
 
 } 
 Train;

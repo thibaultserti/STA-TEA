@@ -6,6 +6,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include "Libs_Unirail/CAN/canLinux.h"
 #include "Libs_Unirail/CAN/MESCAN1_VarTrain.h"
@@ -53,8 +54,8 @@ int main(int argc , char *argv[]) {
         connection = SocketReceive(socket_desc, data, SIZEOF_MSG);
         /* Listening to RBC */
         do {
-            sprintf(speed, "%3.1f", get_speed());
-            sprintf(localisation, "%3.1f", get_localisation());
+            sprintf(speed, "%f", get_speed());
+            sprintf(localisation, "%f", get_localisation());
             send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
 
             data[0] = '\0';
@@ -112,7 +113,7 @@ int main(int argc , char *argv[]) {
                             switch (reqack) {
                                 case REQUEST :
                                     send_data(socket_desc, RESPONSE, MOVEMENT, id, localisation, speed);
-                                    change_speed();
+                                    change_speed(atof(speed));
                                     break;
                                 case ERROR :
                                     break;
@@ -193,20 +194,20 @@ int SocketReceive(int socket, char* response, short rcvSize)
 }
 
 float get_localisation(void){
-    float localisation = train1.distance;
+    int localisation = train1.distance;
     return localisation;
 }
 float get_speed(void){
-    float speed = train1.vit_mesuree ;
+    int speed = train1.vit_mesuree ;
     return speed;
 }
 
-void change_speed(void) {
-
+void change_speed(float speed_req) {
+    WriteVitesseConsigne(roundf(speed_req), 1);
 }
 
 void slow_down(void) {
-
+    WriteVitesseConsigne(0, 1);
 }
 
 void* can(void* arg){

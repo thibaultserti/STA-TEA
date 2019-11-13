@@ -38,6 +38,8 @@ struct timeval instant;
 unsigned char status, varDebug1, varDebug2;
 
 
+struct TrainInfo train1;
+
 bool is_moving = false;
 char* id;
 char* localisation;
@@ -47,9 +49,9 @@ int SocketCreate(void);
 void SocketConnect(int socket_desc, char* adresse_hote);
 int SocketReceive(int socket, char* response, short rcvSize);
 
-int get_localisation(void);
-int get_speed(void);
-void change_speed(void);
+float get_localisation(void);
+float get_speed(void);
+void change_speed(float speed_req);
 void slow_down(void);
 
 void* can(void* arg);
