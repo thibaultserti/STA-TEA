@@ -13,6 +13,7 @@
 #include "Libs_Unirail/CAN/MESCAN1_DefinitionVariable.h"
 #include "EVC.h"
 
+
 int main(int argc , char *argv[]) {
     id = argv[2];
     localisation = argv[3];
@@ -52,8 +53,8 @@ int main(int argc , char *argv[]) {
         connection = SocketReceive(socket_desc, data, SIZEOF_MSG);
         /* Listening to RBC */
         do {
-            sprintf(speed, "%d", get_speed());
-            sprintf(localisation, "%d", get_localisation());
+            sprintf(speed, "%3.1f", get_speed());
+            sprintf(localisation, "%3.1f", get_localisation());
             send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
 
             data[0] = '\0';
@@ -191,12 +192,12 @@ int SocketReceive(int socket, char* response, short rcvSize)
     return 1;
 }
 
-int get_localisation(void){
-    int localisation = 10;
+float get_localisation(void){
+    float localisation = train1.distance;
     return localisation;
 }
-int get_speed(void){
-    int speed = 0;
+float get_speed(void){
+    float speed = train1.vit_mesuree ;
     return speed;
 }
 
@@ -215,7 +216,6 @@ void* can(void* arg){
 	uCAN1_MSG recCanMsg;
 	int fd;
 	struct ifreq ifr;
-    struct TrainInfo train1;
 	int canPort;
 	char *NomPort = "can0";
 	struct can_filter rfilter[2]; 
