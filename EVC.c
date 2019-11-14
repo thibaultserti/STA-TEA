@@ -169,6 +169,8 @@ void SocketConnect(int socket_desc, char* adresse_hote)
         {
             printf("Could not connect to RBC\n");
             slow_down();
+            speed = "0";
+
         }
         if(return_value == 0)
         {
@@ -189,6 +191,7 @@ int SocketReceive(int socket, char* response, short rcvSize)
         {
             perror("Reading stream message");
             slow_down();
+            speed = "0";
             return 0;
         }
         if (rcv == 0)
@@ -240,7 +243,7 @@ void* can(void* arg){
 	rfilter[1].can_id   = 0x033;
 	rfilter[1].can_mask = CAN_SFF_MASK;
 
-	int consigne_rbc=20;
+	//int consigne_rbc=20;
 
 	train1.distance =0;
 	train1.vit_consigne =0;
@@ -261,7 +264,7 @@ void* can(void* arg){
 		{
 			//printf("Reading trame CAN.\n");
 			TraitementDonnee2(&recCanMsg, &train1);
-			WriteVitesseConsigne(consigne_rbc, 1);
+			//WriteVitesseConsigne(consigne_rbc, 1);
 			
 		}
     usleep(15000); //Sampling period ~= 17ms
