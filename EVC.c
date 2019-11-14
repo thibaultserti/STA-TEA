@@ -17,8 +17,8 @@
 
 int main(int argc , char *argv[]) {
     id = argv[2];
-    localisation = argv[3];
-    speed = argv[4];
+    char *localisation = "0";
+    char *speed = "0";
     Fifo *fifoRequests = initialisation();
     int socket_desc;
     int connection;
@@ -119,8 +119,9 @@ int main(int argc , char *argv[]) {
                     }
                     message = defiler(fifoRequests);
                 }
-                sprintf(speed, "%f", get_speed());
-                sprintf(localisation, "%f", get_localisation());
+                float speed_ = get_speed();
+                sprintf(localisation, "%lf", get_localisation());
+                sprintf(speed, "%lf", speed_);
                 send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
                 usleep(15000);
             }
@@ -200,6 +201,7 @@ float get_localisation(void){
 }
 float get_speed(void){
     float speed = train1.vit_mesuree ;
+    printf("get_speed = %f\n", speed);
     return speed;
 }
 
@@ -208,7 +210,7 @@ void change_speed(float speed_req) {
 }
 
 void slow_down(void) {
-    puts("Arrêt d'urgence !!");
+    puts("Arrêt d'urgence !!\n");
     WriteVitesseConsigne(0, 1);
 }
 
@@ -217,8 +219,6 @@ void* can(void* arg){
     gettimeofday(&instant_init,NULL);	
 	gettimeofday(&instant_prec,NULL);	
 	uCAN1_MSG recCanMsg;
-	int fd;
-	struct ifreq ifr;
 	int canPort;
 	char *NomPort = "can0";
 	struct can_filter rfilter[2]; 

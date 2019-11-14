@@ -131,7 +131,6 @@ char *str_sub (const char *s, unsigned int start, unsigned int end) {
 }
 
 bool send_data(int socket, int reqack, int entier, char *id, char* local, char* speed){
-    printf("speed = %s\n", speed);
     char data[SIZEOF_MSG] = "1";
     sprintf(data, "%d", reqack);
     char temp[2] = "";
