@@ -226,20 +226,17 @@ void* print_trains(void* arg){
 
 float speed_to_have(int num_train){
 
-    /*float speed_req = (trains.trains[num_train] -> speed) + 
-                    trains.trains[num_train+1] -> local -  
-                    trains.trains[num_train] -> local - DIST_INTER_TRAIN
-
-*/ if (num_train == 0)
+    if (num_train == 0)
     {
-        return 20.0;   
+        return 25.0;   
     }
     else {
-        return (trains.trains[num_train - 1] -> speed / 2.0);
+    
+        return consigne(trains.trains[num_train-1], trains.trains[num_train]);
     }
 }
 
-int distance (Train *t1, Train *t2)
+float distance(Train *t1, Train *t2)
 {
 	bool found1=false, found2=false;
 	float a;
@@ -279,6 +276,37 @@ int distance (Train *t1, Train *t2)
 		return -1;
 	}
 }
+
+float consigne(Train *t1, Train *t2)
+{
+	int d=distance(t1, t2);
+	int e=DIST_OPT - d;
+	
+	if (d<DIST_STOP)
+	{
+		printf("arret urgence");
+		return 0;
+	}
+	else if (d<DIST_SLOW_DOWN)
+	{
+		printf("mode ralenti");
+		return 0.9*(t1->speed);
+	}
+	else
+	{
+		printf("mode regulation");
+		float K=fabs(P/e*(t1->speed));
+		if (K > 25)
+		{
+			return 25;
+		}
+		else
+		{
+			return K;
+		}
+	}
+}
+
 
 int get_num_train(char* id){
     int num_train = -1;
