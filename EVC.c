@@ -34,6 +34,11 @@ int main(int argc , char *argv[]) {
     if (signal(SIGINT, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGINT\n");
 
+    while (train1.numero_balise == 0){
+        WriteVitesseConsigne(7,1);
+        sleep(1);
+    }
+
     do {
 
 
@@ -128,7 +133,7 @@ int main(int argc , char *argv[]) {
                 sprintf(localisation, "%lf", get_localisation());
                 sprintf(speed, "%lf", speed_);
                 send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
-                usleep(15000);
+                usleep(8000);
             }
         
         }while (true);
@@ -169,6 +174,8 @@ void SocketConnect(int socket_desc, char* adresse_hote)
         {
             printf("Could not connect to RBC\n");
             slow_down();
+            speed = "0";
+
         }
         if(return_value == 0)
         {
@@ -189,6 +196,7 @@ int SocketReceive(int socket, char* response, short rcvSize)
         {
             perror("Reading stream message");
             slow_down();
+            speed = "0";
             return 0;
         }
         if (rcv == 0)
@@ -240,20 +248,21 @@ void* can(void* arg){
 	rfilter[1].can_id   = 0x033;
 	rfilter[1].can_mask = CAN_SFF_MASK;
 
-	int consigne_rbc=20;
+	//int consigne_rbc=20;
 
-	train1.distance =0;
-	train1.vit_consigne =0;
-	train1.imp_mesuree =0;
-	train1.nb_impulsions =0;
-	train1.vit_mesuree=0;
+	train1.distance = 0;
+	train1.vit_consigne = 0;
+	train1.imp_mesuree = 0;
+	train1.nb_impulsions = 0;
+	train1.vit_mesuree = 0;
+    train1.numero_balise = 0;
 
     /* Start CAN bus connexion */
     canPort = canLinux_Init(NomPort);
 	canLinux_InitFilter(canPort, rfilter, sizeof(rfilter));
 	/* Unlock speed limits */
     WriteVitesseLimite(MAX_CONSIGNE_VITESSE_AUTORISEE);
-    usleep(150000); //150ms
+    usleep(80000); //80ms
     
     while(1)
     {
@@ -261,10 +270,10 @@ void* can(void* arg){
 		{
 			//printf("Reading trame CAN.\n");
 			TraitementDonnee2(&recCanMsg, &train1);
-			WriteVitesseConsigne(consigne_rbc, 1);
+			//WriteVitesseConsigne(consigne_rbc, 1);
 			
 		}
-    usleep(15000); //Sampling period ~= 17ms
+    usleep(8000); //Sampling period ~= 17ms
 	}
 	WriteVitesseConsigne(0, 1);
 
@@ -355,11 +364,11 @@ void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos)
 		/** Recuperer Info BALISE  **/
 		case ID_balises_3 :
 			//MAJ_Info_BALISE (XXX);
-			numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
-			printf("Balise no : %d\n", numero_balise);
-			d0 = sectionsPos[numero_balise-1];
+			infos -> numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
+			printf("Balise no : %d\n", infos -> numero_balise);
+			d0 = sectionsPos[infos -> numero_balise-1];
 			infos-> nb_impulsions = 0;
-			infos->distance = d0;
+			infos-> distance = d0;
 			break;
 
 		case MC_ID_MESSAGE_GSM_RECEIVED:
@@ -394,7 +403,7 @@ void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos)
 
 	if(distance_prec > infos->distance)
 	{
-		infos->vit_mesuree=(d_tour-distance_prec+(infos->distance))/(delta_t);	
+		infos->vit_mesuree=(D_TOUR-distance_prec+(infos->distance))/(delta_t);	
 	}
 	else
 	{

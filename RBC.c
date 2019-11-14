@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <math.h>
 #include "RBC.h"
 
 Trains trains;
@@ -80,13 +81,7 @@ void* connection_handler(void *sock)
                                     }
 
                                     /* Go through array of trains to get the right number of train*/
-                                    for(int i =0; i<trains.nb_trains; i++)
-                                    {
-                                        if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                                            num_train = i;
-                                            break;
-                                        }
-                                    }
+                                    num_train = get_num_train(t -> id);
 
                                     /* Send validation request to EVC */
                                     send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
@@ -134,6 +129,7 @@ void* connection_handler(void *sock)
                     message = defiler(fifoRequests);
                 }
             }
+            num_train = get_num_train(id);
             char* speed_requested = speed;
             sprintf(speed_requested, "%3.1f", speed_to_have(num_train));
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
@@ -160,7 +156,7 @@ bool add_to_rbc(Train *t)
     }
     // Then if the number of trains is less than 100, we add the new train to the structure
     if ((trains.nb_trains) < 100){
-        // We add the train at the right place (trains.trains is sorted by growing localisation)
+        // We add the train at the right place (trains.trains is sorted by decreasing localisation)
         int j = trains.nb_trains;
         for (int i = 0; i < (trains.nb_trains); i++){
             if ((trains.trains[i] -> local) > (t -> local)){
@@ -262,17 +258,97 @@ void* print_trains(void* arg){
 
 float speed_to_have(int num_train){
 
-    /*float speed_req = (trains.trains[num_train] -> speed) + 
-                    trains.trains[num_train+1] -> local -  
-                    trains.trains[num_train] -> local - DIST_INTER_TRAIN
-
-*/ if (num_train == trains.nb_trains)
+    if (num_train == 0)
     {
-        return (trains.trains[num_train+1] -> speed / 2.0);
+        return 25.0;   
     }
     else {
-        return 20.0;
+    
+        return consigne(trains.trains[num_train-1], trains.trains[num_train]);
     }
+}
+
+float distance(Train *t1, Train *t2)
+{
+	bool found1=false, found2=false;
+	float a;
+	float b;
+	
+	for (int i=0;i<(trains.nb_trains);i++) // we check if the trains exist
+	{
+		if (strncmp(t1->id,(trains.trains)[i]->id,MAX_LENGTH_ID)==0)
+		{
+			found1=true;
+		}
+		if (strncmp(t2->id,(trains.trains)[i]->id,MAX_LENGTH_ID)==0)
+		{
+			found2=true;
+		}
+	}
+	
+	if (found1 && found2) // if we found them
+	{
+		a=fabs(((*t1).local)-((*t2).local));//distance without crossing 0	
+		if((t1->local)>(t2->local))//distance crossing 0
+        {
+			b=D_TOUR-(t1->local)+(t2->local);
+		}		
+		else 
+		{
+			b=D_TOUR-(t2->local)+(t1->local);
+		}		
+		if(b>a){ // the distance we want is the smaller
+			return a; }
+		else {
+			return b; }
+	}	
+	else //if one or two trains have note been found
+	{
+		perror("One or several trains don't exist.\n");
+		return -1;
+	}
+}
+
+float consigne(Train *t1, Train *t2)
+{
+	int d=distance(t1, t2);
+	int e=DIST_OPT - d;
+	
+	if (d<DIST_STOP)
+	{
+		printf("arret urgence");
+		return 0;
+	}
+	else if (d<DIST_SLOW_DOWN)
+	{
+		printf("mode ralenti");
+		return 0.9*(t1->speed);
+	}
+	else
+	{
+		printf("mode regulation");
+		float K=fabs(P/e*(t1->speed));
+		if (K > 25)
+		{
+			return 25;
+		}
+		else
+		{
+			return K;
+		}
+	}
+}
+
+
+int get_num_train(char* id){
+    int num_train = -1;
+    for(int i =0; i<trains.nb_trains; i++){
+        if(strncmp(trains.trains[i] -> id, id, MAX_LENGTH_ID) == 0){
+            num_train = i;
+            break;
+        }
+    }
+    return num_train;
 }
 
 void timer_thread(union sigval arg)

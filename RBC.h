@@ -8,7 +8,11 @@
 #define MAX_REQUEST 5
 #define PORT_NUMBER_PRINT 9000
 
-#define DIST_INTER_TRAIN
+#define DIST_OPT 300
+#define DIST_STOP 150
+#define DIST_SLOW_DOWN 200
+#define P 150 // gain
+
 typedef struct train
 {
     char id[MAX_LENGTH_ID+1];
@@ -25,13 +29,20 @@ typedef struct trains
 }
 Trains;
 
-//bool init_connection();
+void* connection_handler(void *sock);
+
 bool add_to_rbc(Train *t);
 bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
-void* connection_handler(void *sock);
 void* print_trains(void *arg);
+float distance (Train *t1,Train *t2);
 float speed_to_have(int num_train);
+int get_num_train(char* id);
+float consigne(Train *t1, Train *t2);
+
+void timer_thread(union sigval arg);
+void errno_abort(char* message);
 void create_timer(unsigned i);
+
 
 #endif
