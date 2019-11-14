@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install_lib_wiringPi
-      run: git clone https://github.com/WiringPi/WiringPi.git && ./build
+      run: git clone https://github.com/WiringPi/WiringPi.git && cd WiringPi && ./build
     - name: make
       run: make
