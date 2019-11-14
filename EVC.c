@@ -402,7 +402,7 @@ void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos)
 
 	if(distance_prec > infos->distance)
 	{
-		infos->vit_mesuree=(d_tour-distance_prec+(infos->distance))/(delta_t);	
+		infos->vit_mesuree=(D_TOUR-distance_prec+(infos->distance))/(delta_t);	
 	}
 	else
 	{

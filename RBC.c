@@ -243,6 +243,8 @@ float speed_to_have(int num_train){
     }
 }
 
+
+
 void timer_thread(union sigval arg)
 {
     int i = 0;

@@ -24,6 +24,8 @@
 #define EOM "$"
 #define MAX_SIZE 6
 
+#define D_TOUR 1745
+
 typedef struct Element Element;
 struct Element
 {

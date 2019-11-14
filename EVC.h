@@ -26,7 +26,6 @@ typedef struct TrainInfo
 }TrainInfo;
 
 ///longueurs des cantons 1 a 9 (grande boucle), en cm.
-float d_tour = 167+ 190+ 226+ 162+ 161+ 213+ 184+ 163+ 279;
 const int sectionsPos[] = {0,167, 357, 583, 745, 906, 1119, 1303, 1466}; 
 
 float distance_prec;
