@@ -6,6 +6,7 @@
 #define MAX_LENGTH_ID 6
 #define MAX_NB_TRAINS 100
 #define MAX_REQUEST 5
+#define PORT_NUMBER_PRINT 9000
 
 #define DIST_INTER_TRAIN
 typedef struct train

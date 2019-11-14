@@ -218,12 +218,44 @@ bool update_local_rbc(char* id, short local)
     return false;
 }
 
+/* Fonction d'affichage de l'état des trains */
 void* print_trains(void* arg){
+    int sock_print;
+    struct sockaddr_in server_print;
+
+    /* Create socket */
+    sock_print = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_print < 0) {
+        perror("Opening stream socket");
+        //break;
+    }
+
+    /* Name socket */
+    server_print.sin_family = AF_INET;
+    server_print.sin_addr.s_addr = INADDR_ANY;
+    server_print.sin_port = htons(PORT_NUMBER_PRINT);
+
+    connect(sock_print, (struct sockaddr *)&server_print, sizeof(server_print));
+    perror("Connection\n");
+
+
     while (1) {
+        char data_print[SIZEOF_MSG] = "";
+
         printf("NAME   LOC    SPEED\n");
         for (int i = 0; i < (trains.nb_trains); i++) {
             printf("%s %4.1f %4.1f\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> speed);
+            strcat(data_print, (trains.trains)[i] -> id);
+            strcat(data_print, SEPARATOR);
+            char temp[15] = "";
+            printf("trains.trains : %f\n", (trains.trains)[i] -> local);
+            sprintf(temp, "%f", (trains.trains)[i] -> local);
+            printf("temp : %s\n", temp);
+            strcat(data_print, temp);
+            strcat(data_print, EOM);
+            printf("%s\n", data_print);
         }
+        send(sock_print, data_print, strlen(data_print),MSG_NOSIGNAL);
         sleep(1);
     }
 }
