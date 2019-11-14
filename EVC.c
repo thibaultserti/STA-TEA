@@ -48,16 +48,13 @@ int main(int argc , char *argv[]) {
 
         printf("Connected\n");
 
-        if (!(send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, speed))){
+        bool correct = send_data(socket_desc, REQUEST, ADD_TRAIN, id, localisation, speed);
+        if (!correct){
             continue;
         }
         connection = SocketReceive(socket_desc, data, SIZEOF_MSG);
         /* Listening to RBC */
         do {
-            sprintf(speed, "%f", get_speed());
-            sprintf(localisation, "%f", get_localisation());
-            send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
-
             data[0] = '\0';
             memset(data, 0, sizeof(data));
             rval = read(socket_desc, data, SIZEOF_MSG);
@@ -67,7 +64,7 @@ int main(int argc , char *argv[]) {
                 perror("Ending connection\n");
                 break;
             } else {
-                //printf("Received : %s\n", data);
+                printf("Received : %s\n", data);
 
                 parse_EOM(fifoRequests, data);
 
@@ -90,7 +87,7 @@ int main(int argc , char *argv[]) {
                         case LOCATION_REPORT :
                             switch (reqack) {
                                 case RESPONSE :
-                                    //printf("Position has been transmitted\n");
+                                    printf("Position has been transmitted\n");
                                     break;
                                 case ERROR :
                                     break;
@@ -122,6 +119,10 @@ int main(int argc , char *argv[]) {
                     }
                     message = defiler(fifoRequests);
                 }
+                sprintf(speed, "%f", get_speed());
+                sprintf(localisation, "%f", get_localisation());
+                send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
+                usleep(15000);
             }
         
         }while (true);
@@ -207,6 +208,7 @@ void change_speed(float speed_req) {
 }
 
 void slow_down(void) {
+    puts("Arrêt d'urgence !!");
     WriteVitesseConsigne(0, 1);
 }
 
@@ -232,22 +234,6 @@ void* can(void* arg){
 	train1.imp_mesuree =0;
 	train1.nb_impulsions =0;
 	train1.vit_mesuree=0;
-	
- 
-    printf("je suis dans main \n");
-
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    /* I want to get an IPv4 IP address */
-    ifr.ifr_addr.sa_family = AF_INET;
-
-    /* I want IP address attached to "wlan1" */
-    strncpy(ifr.ifr_name, "wlan1", IFNAMSIZ-1);
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
-
-    /* display result */
-    printf("mon IP WLAN1 : %s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
 
     /* Start CAN bus connexion */
     canPort = canLinux_Init(NomPort);
@@ -302,6 +288,7 @@ int WriteVitesseLimite(float vitesseLimite)
 ///////////////////////////////////////////
 int WriteVitesseConsigne(unsigned int vitesse, unsigned char sens)
 {
+    printf("Changement de la vitesse à %d cm/s\n", vitesse);
 	
 	char *ifname = "can0";
 	int portNumber = canLinux_Init(ifname);

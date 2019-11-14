@@ -150,7 +150,7 @@ bool send_data(int socket, int reqack, int entier, char *id, char* local, char* 
         return false;
     }
     else {
-        //printf("Sending the following message : %s\n", data);
+        printf("Sending the following message : %s\n", data);
         return true;
     }
     return false;

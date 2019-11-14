@@ -49,7 +49,7 @@ void* connection_handler(void *sock)
             }
             else
             {
-                //printf("Received : %s\n", data);
+                printf("Received : %s\n", data);
 
                 parse_EOM(fifoRequests, data);
 
@@ -139,6 +139,7 @@ void* connection_handler(void *sock)
             char* speed_requested = speed;
             sprintf(speed_requested, "%3.1f", speed_to_have(num_train));
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
+            usleep(1500000);
 
         } while (rval > 0);
     puts("Connection ended");
@@ -351,8 +352,6 @@ int main()
     {
         int *new_sock = malloc(1);
         *new_sock = new_socket;
-        printf("Hello\n");
-
 
         /* Start a new thread to handle the connection */
         if(pthread_create(&thread, NULL, connection_handler, (void*) new_sock)<0)
