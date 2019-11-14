@@ -34,6 +34,10 @@ int main(int argc , char *argv[]) {
     if (signal(SIGINT, sig_handler) == SIG_ERR)
         printf("\ncan't catch SIGINT\n");
 
+    while (train1.numero_balise == 0){
+        WriteVitesseConsigne(5,1);
+    }
+
     do {
 
 
@@ -245,11 +249,12 @@ void* can(void* arg){
 
 	//int consigne_rbc=20;
 
-	train1.distance =0;
-	train1.vit_consigne =0;
-	train1.imp_mesuree =0;
-	train1.nb_impulsions =0;
-	train1.vit_mesuree=0;
+	train1.distance = 0;
+	train1.vit_consigne = 0;
+	train1.imp_mesuree = 0;
+	train1.nb_impulsions = 0;
+	train1.vit_mesuree = 0;
+    train1.numero_balise = 0;
 
     /* Start CAN bus connexion */
     canPort = canLinux_Init(NomPort);
@@ -358,11 +363,11 @@ void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos)
 		/** Recuperer Info BALISE  **/
 		case ID_balises_3 :
 			//MAJ_Info_BALISE (XXX);
-			numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
-			printf("Balise no : %d\n", numero_balise);
-			d0 = sectionsPos[numero_balise-1];
+			infos -> numero_balise = recCanMsg->frame.data5;//Le NUMERO DE LA BALISE
+			printf("Balise no : %d\n", infos -> numero_balise);
+			d0 = sectionsPos[infos -> numero_balise-1];
 			infos-> nb_impulsions = 0;
-			infos->distance = d0;
+			infos-> distance = d0;
 			break;
 
 		case MC_ID_MESSAGE_GSM_RECEIVED:

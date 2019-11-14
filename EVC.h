@@ -22,14 +22,13 @@ typedef struct TrainInfo
 	float vit_mesuree;
 	int imp_mesuree;
 	int nb_impulsions;
-	int noBalise; //Rajout
+	int numero_balise; //Rajout
 }TrainInfo;
 
 ///longueurs des cantons 1 a 9 (grande boucle), en cm.
 float d_tour = 167+ 190+ 226+ 162+ 161+ 213+ 184+ 163+ 279;
 const int sectionsPos[] = {0,167, 357, 583, 745, 906, 1119, 1303, 1466}; 
 
-int numero_balise;
 float distance_prec;
 float d0 = 0; 
 
