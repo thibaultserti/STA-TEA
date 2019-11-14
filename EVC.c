@@ -195,11 +195,11 @@ int SocketReceive(int socket, char* response, short rcvSize)
 }
 
 float get_localisation(void){
-    int localisation = train1.distance;
+    float localisation = train1.distance;
     return localisation;
 }
 float get_speed(void){
-    int speed = train1.vit_mesuree ;
+    float speed = train1.vit_mesuree ;
     return speed;
 }
 
