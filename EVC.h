@@ -58,11 +58,11 @@ float get_speed(void);
 void change_speed(float speed_req);
 void slow_down(void);
 
+void sig_handler(int signo);
 void* can(void* arg);
 int WriteVitesseLimite(float vitesseLimite);
 int WriteVitesseConsigne(unsigned int vitesse, unsigned char sens);
 int  WriteTrameStatusRUNRP1(unsigned char status, unsigned char varDebug1, unsigned char varDebug2);
 void TraitementDonnee2 (uCAN1_MSG *recCanMsg, TrainInfo *infos);
-
 
  #endif

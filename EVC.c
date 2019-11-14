@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <math.h>
+#include <signal.h>
 
 #include "Libs_Unirail/CAN/canLinux.h"
 #include "Libs_Unirail/CAN/MESCAN1_VarTrain.h"
@@ -28,6 +29,10 @@ int main(int argc , char *argv[]) {
     char* message;
     pthread_t thread;
     pthread_create(&thread, NULL, can, NULL);
+
+    //When SIGINT caught, assign it to the handler
+    if (signal(SIGINT, sig_handler) == SIG_ERR)
+        printf("\ncan't catch SIGINT\n");
 
     do {
 
@@ -162,6 +167,7 @@ void SocketConnect(int socket_desc, char* adresse_hote)
         if(return_value<0)
         {
             printf("Could not connect to RBC\n");
+            slow_down();
         }
         if(return_value == 0)
         {
@@ -212,13 +218,20 @@ void slow_down(void) {
     WriteVitesseConsigne(0, 1);
 }
 
+void sig_handler(int signo)
+{
+    if (signo == SIGINT) {
+        printf("received SIGINT\n");
+        slow_down();
+        exit(0);
+    }
+}
+
 void* can(void* arg){
     // ------------------------------CAN---------------------------------
     gettimeofday(&instant_init,NULL);	
 	gettimeofday(&instant_prec,NULL);	
 	uCAN1_MSG recCanMsg;
-	int fd;
-	struct ifreq ifr;
 	int canPort;
 	char *NomPort = "can0";
 	struct can_filter rfilter[2]; 
