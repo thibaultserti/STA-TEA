@@ -9,8 +9,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: cd
-      run: cd build/
-
+    - name: install_lib_wiringPi
+      run: git clone https://github.com/WiringPi/WiringPi.git && ./build
     - name: make
       run: make
