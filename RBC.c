@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <math.h>
 #include "RBC.h"
 
 Trains trains;
@@ -243,6 +244,46 @@ float speed_to_have(int num_train){
     }
 }
 
+int distance (Train *t1, Train *t2)
+{
+	bool found1=false, found2=false;
+	float a;
+	float b;
+	
+	for (int i=0;i<(trains.nb_trains);i++) // we check if the trains exist
+	{
+		if (strncmp(t1->id,(trains.trains)[i]->id,MAX_LENGTH_ID)==0)
+		{
+			found1=true;
+		}
+		if (strncmp(t2->id,(trains.trains)[i]->id,MAX_LENGTH_ID)==0)
+		{
+			found2=true;
+		}
+	}
+	
+	if (found1 && found2) // if we found them
+	{
+		a=fabs(((*t1).local)-((*t2).local));//distance without crossing 0	
+		if((t1->local)>(t2->local))//distance crossing 0
+        {
+			b=D_TOUR-(t1->local)+(t2->local);
+		}		
+		else 
+		{
+			b=D_TOUR-(t2->local)+(t1->local);
+		}		
+		if(b>a){ // the distance we want is the smaller
+			return a; }
+		else {
+			return b; }
+	}	
+	else //if one or two trains have note been found
+	{
+		perror("One or several trains don't exist.\n");
+		return -1;
+	}
+}
 
 
 void timer_thread(union sigval arg)

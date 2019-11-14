@@ -24,13 +24,17 @@ typedef struct trains
 }
 Trains;
 
-//bool init_connection();
+void* connection_handler(void *sock);
+
 bool add_to_rbc(Train *t);
 bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
-void* connection_handler(void *sock);
 void* print_trains(void *arg);
+int distance (Train *t1,Train *t2);
 float speed_to_have(int num_train);
+void timer_thread(union sigval arg);
+void errno_abort(char* message);
 void create_timer(unsigned i);
+
 
 #endif
