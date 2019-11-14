@@ -35,7 +35,7 @@ int main(int argc , char *argv[]) {
         printf("\ncan't catch SIGINT\n");
 
     while (train1.numero_balise == 0){
-        WriteVitesseConsigne(5,1);
+        WriteVitesseConsigne(7,1);
     }
 
     do {

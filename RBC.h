@@ -32,6 +32,8 @@ bool update_local_rbc(char* id, short local);
 void* print_trains(void *arg);
 int distance (Train *t1,Train *t2);
 float speed_to_have(int num_train);
+int get_num_train(char* id);
+
 void timer_thread(union sigval arg);
 void errno_abort(char* message);
 void create_timer(unsigned i);

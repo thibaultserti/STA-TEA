@@ -81,13 +81,7 @@ void* connection_handler(void *sock)
                                     }
 
                                     /* Go through array of trains to get the right number of train*/
-                                    for(int i =0; i<trains.nb_trains; i++)
-                                    {
-                                        if(strncmp(trains.trains[i] -> id, t -> id, MAX_LENGTH_ID) == 0){
-                                            num_train = i;
-                                            break;
-                                        }
-                                    }
+                                    num_train = get_num_train(t -> id);
 
                                     /* Send validation request to EVC */
                                     send_data(datasock, RESPONSE, ADD_TRAIN, id, localisation, speed);
@@ -285,6 +279,16 @@ int distance (Train *t1, Train *t2)
 	}
 }
 
+int get_num_train(char* id){
+    int num_train = -1;
+    for(int i =0; i<trains.nb_trains; i++){
+        if(strncmp(trains.trains[i] -> id, id, MAX_LENGTH_ID) == 0){
+            num_train = i;
+            break;
+        }
+    }
+    return num_train;
+}
 
 void timer_thread(union sigval arg)
 {
