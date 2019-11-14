@@ -7,5 +7,5 @@
 
 ## On the clients
 ```
-./EVC ip_serveur localisation delay
+./EVC ip_serveur
 ```

@@ -69,7 +69,6 @@ void* connection_handler(void *sock)
                                         t -> id[i] = id[i];
                                     }
                                     t -> local = localisation_;
-                                    t -> eoa = 100;
                                     t -> speed = speed_;
                                     bool is_added = add_to_rbc(t);
 
@@ -80,7 +79,6 @@ void* connection_handler(void *sock)
                                         send_data(datasock, ERROR, ADD_TRAIN, id, localisation, speed);
                                     }
 
-                                    update_eoa_rbc();
                                     /* Go through array of trains to get the right number of train*/
                                     for(int i =0; i<trains.nb_trains; i++)
                                     {
@@ -220,20 +218,11 @@ bool update_local_rbc(char* id, short local)
     return false;
 }
 
-bool update_eoa_rbc(void){
-    // The structure trains.trains must be sorted by growing local
-    for (int i=0; i < (trains.nb_trains) - 1; i++){
-        (trains.trains)[i] -> eoa = ((trains.trains)[i+1] -> local) - 1;
-    }
-    //perror("The EOA has been updated.\n");
-    return true;
-}
-
 void* print_trains(void* arg){
     while (1) {
-        printf("NAME   LOC EOA\n");
+        printf("NAME   LOC    SPEED\n");
         for (int i = 0; i < (trains.nb_trains); i++) {
-            printf("%s %4.1f %d\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> eoa);
+            printf("%s %4.1f %4.1f\n", (trains.trains)[i] -> id, (trains.trains)[i] -> local, (trains.trains)[i] -> speed);
         }
         sleep(1);
     }

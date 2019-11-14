@@ -12,7 +12,6 @@ typedef struct train
 {
     char id[MAX_LENGTH_ID+1];
     float local;
-    short signed eoa;
     float speed;
 
 } 
@@ -29,7 +28,6 @@ Trains;
 bool add_to_rbc(Train *t);
 bool remove_from_rbc(Train *t);
 bool update_local_rbc(char* id, short local);
-bool update_eoa_rbc(void);
 void* connection_handler(void *sock);
 void* print_trains(void *arg);
 float speed_to_have(int num_train);

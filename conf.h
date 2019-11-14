@@ -65,9 +65,9 @@ void enfiler(Fifo *fifo, char* newMsg)
     nouveau->msg = newMsg;
     nouveau->suivant = NULL;
 
-    if (fifo->premier != NULL) /* La file n'est pas vide */
+    if (fifo->premier != NULL) /* Queue is not empty */
     {
-        /* On se positionne à la fin de la file */
+        /* We go at the end of the queue */
         Element *elementActuel = fifo->premier;
         while (elementActuel->suivant != NULL)
         {
@@ -75,7 +75,7 @@ void enfiler(Fifo *fifo, char* newMsg)
         }
         elementActuel->suivant = nouveau;
     }
-    else /* La file est vide, notre élément est le premier */
+    else /* Queue is empty vide, our element is first*/
     {
         fifo->premier = nouveau;
     }
@@ -90,7 +90,7 @@ char* defiler(Fifo *fifo)
 
     char* request = "";
 
-    /* On vérifie s'il y a quelque chose à défiler */
+    /* Check if there is something to defile */
     if (fifo->premier != NULL)
     {
         Element *elementDefile = fifo->premier;
@@ -119,12 +119,12 @@ char *str_sub (const char *s, unsigned int start, unsigned int end) {
         }
         else
         {
-            fprintf(stderr, "Memoire insuffisante\n");
+            fprintf(stderr, "Insufficient memory\n");
             exit(EXIT_FAILURE);
         }
     }
     else{
-        printf("Erreur d'arguments\n");
+        printf("Args error\n");
         exit(EXIT_FAILURE);
     }
     return new_s;
