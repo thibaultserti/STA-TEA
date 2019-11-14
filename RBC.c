@@ -129,6 +129,7 @@ void* connection_handler(void *sock)
                     message = defiler(fifoRequests);
                 }
             }
+            num_train = get_num_train(id);
             char* speed_requested = speed;
             sprintf(speed_requested, "%3.1f", speed_to_have(num_train));
             send_data(datasock, REQUEST, MOVEMENT, id, localisation, speed_requested);
@@ -155,7 +156,7 @@ bool add_to_rbc(Train *t)
     }
     // Then if the number of trains is less than 100, we add the new train to the structure
     if ((trains.nb_trains) < 100){
-        // We add the train at the right place (trains.trains is sorted by growing localisation)
+        // We add the train at the right place (trains.trains is sorted by decreasing localisation)
         int j = trains.nb_trains;
         for (int i = 0; i < (trains.nb_trains); i++){
             if ((trains.trains[i] -> local) > (t -> local)){
@@ -229,12 +230,12 @@ float speed_to_have(int num_train){
                     trains.trains[num_train+1] -> local -  
                     trains.trains[num_train] -> local - DIST_INTER_TRAIN
 
-*/ if (num_train != trains.nb_trains - 1)
+*/ if (num_train == 0)
     {
-        return (trains.trains[num_train + 1] -> speed / 2.0);
+        return 20.0;   
     }
     else {
-        return 20.0;
+        return (trains.trains[num_train - 1] -> speed / 2.0);
     }
 }
 

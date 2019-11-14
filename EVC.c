@@ -36,6 +36,7 @@ int main(int argc , char *argv[]) {
 
     while (train1.numero_balise == 0){
         WriteVitesseConsigne(7,1);
+        sleep(1);
     }
 
     do {
@@ -132,7 +133,7 @@ int main(int argc , char *argv[]) {
                 sprintf(localisation, "%lf", get_localisation());
                 sprintf(speed, "%lf", speed_);
                 send_data(socket_desc, REQUEST, LOCATION_REPORT, id, localisation, speed);
-                usleep(15000);
+                usleep(8000);
             }
         
         }while (true);
@@ -261,7 +262,7 @@ void* can(void* arg){
 	canLinux_InitFilter(canPort, rfilter, sizeof(rfilter));
 	/* Unlock speed limits */
     WriteVitesseLimite(MAX_CONSIGNE_VITESSE_AUTORISEE);
-    usleep(150000); //150ms
+    usleep(80000); //80ms
     
     while(1)
     {
@@ -272,7 +273,7 @@ void* can(void* arg){
 			//WriteVitesseConsigne(consigne_rbc, 1);
 			
 		}
-    usleep(15000); //Sampling period ~= 17ms
+    usleep(8000); //Sampling period ~= 17ms
 	}
 	WriteVitesseConsigne(0, 1);
 
