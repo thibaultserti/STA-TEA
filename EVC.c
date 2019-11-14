@@ -155,7 +155,7 @@ void SocketConnect(int socket_desc, char* adresse_hote)
     server.sin_addr.s_addr = inet_addr(adresse_hote);
     server.sin_family = AF_INET;
     server.sin_port = htons(PORT_NUMBER);
-    //Vérification de la connection
+    // Check the connection
     while (true)
     {
         return_value = connect(socket_desc, (struct sockaddr *)&server, sizeof(server));
@@ -179,8 +179,7 @@ int SocketReceive(int socket, char* response, short rcvSize)
     while(rcv<0)
     {
         rcv = read(socket, response, rcvSize-1);
-        if(rcv < 0) /*Vérification nécessaire mais pas élégante. L'idéal serait de pouvoir exécuter une instruction
-            qu'après la première instance du while */
+        if(rcv < 0) /* Necessary check. Ideal thing should be to execute instructions after the first while */
         {
             perror("Reading stream message");
             slow_down();
@@ -201,7 +200,6 @@ float get_localisation(void){
 }
 float get_speed(void){
     float speed = train1.vit_mesuree ;
-    printf("get_speed = %f\n", speed);
     return speed;
 }
 
@@ -210,7 +208,7 @@ void change_speed(float speed_req) {
 }
 
 void slow_down(void) {
-    puts("Arrêt d'urgence !!\n");
+    printf("Arrêt d'urgence !!\n");
     WriteVitesseConsigne(0, 1);
 }
 
@@ -246,7 +244,7 @@ void* can(void* arg){
     {
 		if(ECAN1_receive(canPort, &recCanMsg))
 		{
-			//printf("Lecture trame CAN.\n");
+			//printf("Reading trame CAN.\n");
 			TraitementDonnee2(&recCanMsg, &train1);
 			WriteVitesseConsigne(consigne_rbc, 1);
 			
@@ -294,7 +292,7 @@ int WriteVitesseConsigne(unsigned int vitesse, unsigned char sens)
 	int portNumber = canLinux_Init(ifname);
 	uCAN1_MSG consigneVitesse;
 
-	if(vitesse>MAX_CONSIGNE_VITESSE_AUTORISEE) //vitesse supÃ©rieur Ã  50 cm/s
+	if(vitesse>MAX_CONSIGNE_VITESSE_AUTORISEE) //vitesse supérieur à  50 cm/s
 		vitesse = MAX_CONSIGNE_VITESSE_AUTORISEE;
 	
 	consigneVitesse.frame.id  = MC_ID_CONSIGNE_VITESSE;
