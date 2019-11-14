@@ -235,9 +235,9 @@ float speed_to_have(int num_train){
                     trains.trains[num_train+1] -> local -  
                     trains.trains[num_train] -> local - DIST_INTER_TRAIN
 
-*/ if (num_train == trains.nb_trains)
+*/ if (num_train != trains.nb_trains - 1)
     {
-        return (trains.trains[num_train+1] -> speed / 2.0);
+        return (trains.trains[num_train + 1] -> speed / 2.0);
     }
     else {
         return 20.0;
