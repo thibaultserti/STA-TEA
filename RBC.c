@@ -309,36 +309,41 @@ float distance(Train *t1, Train *t2)
 	}
 }
 
-float consigne(Train *t1, Train *t2)
-{
-	int d=distance(t1, t2);
-	int e=DIST_OPT - d;
-	
-	if (d<DIST_STOP)
-	{
-		printf("arret urgence");
-		return 0;
-	}
-	else if (d<DIST_SLOW_DOWN)
-	{
-		printf("mode ralenti");
-		return 0.9*(t1->speed);
-	}
-	else
-	{
-		printf("mode regulation");
-		float K=fabs(P/e*(t1->speed));
-		if (K > 25)
-		{
-			return 25;
-		}
-		else
-		{
-			return K;
-		}
-	}
-}
+float consigne(Train *t1, Train *t2) {
+    int d = 0;
+    if(trains.nb_trains >= 2){
+        d  = distance(t1, t2);
+    }
+    else{
+        d = 1745;
+    }
 
+    int e = DIST_OPT - d;
+
+    if (d < DIST_STOP)
+    {
+        printf("Emergency stop !");
+        return 0;
+    }
+    else if (d < DIST_SLOW_DOWN)
+    {
+        printf("Slow mode");
+        return 0.9 * (t1 -> speed);
+    }
+    else
+    {
+        printf("Regulation mode");
+        float K = fabs(P / e * (t1 -> speed));
+        if (K > 25)
+        {
+            return 25;
+        }
+        else
+        {
+            return K;
+        }
+    }
+}
 
 int get_num_train(char* id){
     int num_train = -1;
