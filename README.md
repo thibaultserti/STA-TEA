@@ -12,12 +12,14 @@ python3 InterfaceGraphique.py
 
 ## On the clients
 ```
-./EVC ip_serveur
+./EVC ip_serveur id_train
 ```
 
 ## IP of the train
 TRAIN 2 has IP ```192.168.1.34```
+
 TRAIN 3 has IP ```192.168.1.43```
+
 TRAIN 4 has IP ```192.168.1.23```
 
 ## In case of failure
